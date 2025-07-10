@@ -10,9 +10,15 @@ module.exports = {
           dark: "#111827",
           button: "#A78BFA",
           light: "#ffffff",
+          btnLight: "rgb(196 181 253 / 0.5)",
         },
         underlay: {
           dark: "#1f2937",
+        },
+      },
+      size: {
+        default: {
+          DEFAULT: "[17px]",
         },
       },
     },

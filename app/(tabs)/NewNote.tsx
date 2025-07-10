@@ -1,12 +1,123 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import dayjs from "dayjs";
+import advanceFormat from "dayjs/plugin/advancedFormat";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { v4 as uuidv4 } from "uuid";
 
+dayjs.extend(advanceFormat);
+
+const STORAGE_KEY = "scribbly-notes";
+
+type NoteType = {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+};
 const NewNote = () => {
-  return (
-    <View className='bg-gray-900 h-screen'>
-      <Text>NewNote</Text>
-    </View>
-  )
-}
+  const [loading, setLoading] = useState<boolean>(false);
+  const [newNote, setNewNote] = useState({
+    id: uuidv4(),
+    title: "",
+    date: "",
+    content: "",
+  });
+  const [notes, setNotes] = useState<NoteType[]>([]);
 
-export default NewNote
+  const createNote = async () => {
+    newNote.date = dayjs().format("MMMM Do YYYY, h:mm a");
+    const dataInStorage = await AsyncStorage.getItem(STORAGE_KEY);
+    const parsedDataInStorage: NoteType[] = dataInStorage
+      ? JSON.parse(dataInStorage)
+      : [];
+    setNotes(parsedDataInStorage);
+    console.log("parsedDataInStorage", notes);
+    const updatedNotes = [...parsedDataInStorage, newNote];
+    setNotes(updatedNotes);
+    try {
+      setLoading(true);
+
+      console.log(notes);
+      console.log(updatedNotes);
+
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes));
+      console.log("Note Saved!");
+      setNewNote({ title: "", content: "", date: "", id: uuidv4() });
+      setNotes([]);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <SafeAreaView className="bg-gray-900 h-screen">
+      <View className="px-4 py-4">
+        <Text className="text-primary-button text-2xl font-semibold text-center">
+          Create new note
+        </Text>
+        {/* Title */}
+        <View className="mt-5 max-w-md mx-auto w-full">
+          <label className="text-slate-400 font-medium">Title</label>
+          <TextInput
+            autoFocus
+            value={newNote.title}
+            onChangeText={(text) =>
+              setNewNote((prev) => ({ ...prev, title: text }))
+            }
+            placeholder="Enter title i.e Code snippets..."
+            placeholderTextColor="#9CA3AF"
+            className="bg-gray-800 h-10 ring-1 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
+          />
+
+          {/* Content */}
+          <View className="mt-4 ">
+            <label className="text-slate-400 font-medium">Content</label>
+            <TextInput
+              value={newNote.content}
+              onChangeText={(text) =>
+                setNewNote((prev) => ({ ...prev, content: text }))
+              }
+              placeholder="Start typing your thoughts... "
+              multiline
+              textAlignVertical="top"
+              placeholderTextColor="#9CA3AF"
+              className="bg-gray-800 ring-1 py-2 min-h-20 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
+            />
+          </View>
+
+          {/* Save Button */}
+          <TouchableOpacity
+            onPress={createNote}
+            className="py-3 px-4 shadow-xl  rounded-xl bg-primary-button mt-5 "
+          >
+            <View className="">
+              {loading ? (
+                <View className="flex flex-row justify-center items-center gap-2">
+                  <ActivityIndicator />
+                  <Text className="text-center font-medium text-[16px]">
+                    saving...
+                  </Text>
+                </View>
+              ) : (
+                <Text className="text-center font-medium text-[16px]">
+                  Create note
+                </Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default NewNote;

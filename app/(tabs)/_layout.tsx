@@ -5,9 +5,9 @@ import { Text, View } from "react-native";
 
 const TabIcon = ({ name, icon, focused }: any) => {
   return (
-    <View className="overflow-hidden  items-center rounded-full  ">
+    <View className="overflow-hidden outline-none items-center rounded-full  ">
       <View
-        className={`${focused ? "bg-gray-700 " : "bg-transparent"} h-14 overflow-hidden flex justify-center items-center   px-4 flex-row min-w-[112px] w-full`}
+        className={`${focused ? "bg-gray-700 " : "bg-transparent"} h-14 outline-none  overflow-hidden flex justify-center items-center   px-4 flex-row min-w-[112px] w-full`}
       >
         <Ionicons name={icon} size={focused ? 26 : 25} className={`${focused ? "text-primary-button": 'text-gray-400'}`} />
         {focused && (
