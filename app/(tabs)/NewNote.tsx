@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import dayjs from "dayjs";
 import advanceFormat from "dayjs/plugin/advancedFormat";
@@ -11,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { v4 as uuidv4 } from "uuid";
+import MenuModal from "../(components)/Menu";
 
 dayjs.extend(advanceFormat);
 
@@ -21,36 +23,48 @@ type NoteType = {
   title: string;
   content: string;
   date: string;
+  favourite: boolean;
 };
 const NewNote = () => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
   const [newNote, setNewNote] = useState({
     id: uuidv4(),
     title: "",
     date: "",
     content: "",
+    favourite: false,
   });
   const [notes, setNotes] = useState<NoteType[]>([]);
 
+  // Creating new note
   const createNote = async () => {
     newNote.date = dayjs().format("MMMM Do YYYY, h:mm a");
+    // Get notes from storage first
     const dataInStorage = await AsyncStorage.getItem(STORAGE_KEY);
     const parsedDataInStorage: NoteType[] = dataInStorage
       ? JSON.parse(dataInStorage)
       : [];
     setNotes(parsedDataInStorage);
-    console.log("parsedDataInStorage", notes);
+
+    // Update the existing notes in state
     const updatedNotes = [...parsedDataInStorage, newNote];
     setNotes(updatedNotes);
     try {
       setLoading(true);
 
-      console.log(notes);
-      console.log(updatedNotes);
-
+      // Set the updated notes to storage
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotes));
       console.log("Note Saved!");
-      setNewNote({ title: "", content: "", date: "", id: uuidv4() });
+      // Revert inputs to null/ empty
+      setNewNote({
+        title: "",
+        content: "",
+        date: "",
+        id: uuidv4(),
+        favourite: false,
+      });
       setNotes([]);
     } catch (err) {
       console.log(err);
@@ -60,12 +74,24 @@ const NewNote = () => {
   };
   return (
     <SafeAreaView className="bg-gray-900 h-screen">
+      <View className="flex-row items-center justify-between mb-2 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
+        <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
+        {/* Menu button */}
+        <TouchableOpacity
+          onPress={() => {
+            console.log("open the menu");
+            setMenuOpen(!menuOpen);
+          }}
+        >
+          <Ionicons name="menu" size={27} className="text-primary-button" />
+        </TouchableOpacity>
+      </View>
       <View className="px-4 py-4">
-        <Text className="text-primary-button text-2xl font-semibold text-center">
+        <Text className="text-primary-btnLight text-2xl font-semibold text-center">
           Create new note
         </Text>
-        {/* Title */}
-        <View className="mt-5 max-w-md mx-auto w-full">
+        {/* Title  */}
+        <View className="mt-3 max-w-md mx-auto w-full">
           <label className="text-slate-400 font-medium">Title</label>
           <TextInput
             autoFocus
@@ -115,7 +141,9 @@ const NewNote = () => {
             </View>
           </TouchableOpacity>
         </View>
+        {menuOpen && <MenuModal/>}
       </View>
+      
     </SafeAreaView>
   );
 };

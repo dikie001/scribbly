@@ -7,11 +7,13 @@ import {
   Modal,
   SafeAreaView,
   ScrollView,
+  Share,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import MenuModal from "../(components)/Menu";
 import "../../global.css";
 
 const STORAGE_KEY = "scribbly-notes";
@@ -34,18 +36,19 @@ export default function App() {
   const [isFavourite, setIsFavourite] = useState<boolean>();
   const [currentId, setCurrentId] = useState<string>();
   const currentIdRef = useRef<string | null>(null);
+  const currentLikeRef = useRef<boolean | null>(null);
+  const [liked, setLiked] = useState();
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [indicate, setIndicate] = useState<boolean | null>(null);
   const [informationModalVisible, setInformationModalVisible] =
     useState<boolean>(false);
   const [editNotes, setEditNotes] = useState({
     title: "",
     date: "",
     content: "",
+    favourite: null,
   });
-  const [newEditedNotes, setNewEditedNotes] = useState({
-    title: "",
-    date: "",
-    content: "",
-  });
+
   const [viewNote, setViewNote] = useState<any>();
 
   useFocusEffect(
@@ -59,9 +62,6 @@ export default function App() {
       const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
       const parsedData: NoteType[] = loadedData ? JSON.parse(loadedData) : [];
       setNotes(parsedData);
-      if (!loadedData) {
-        console.log("no notes in storage");
-      }
     } catch (err) {
       console.log(err);
     } finally {
@@ -75,7 +75,7 @@ export default function App() {
   };
 
   // handle edit functionality
-  const handleEdit = (id: string) => {
+  const handleEdit = () => {
     const idToEdit = currentIdRef.current;
     setExtraMenu(!extraMenu);
     const toBeEdited: any = notes?.find((n) => n.id === idToEdit);
@@ -85,8 +85,15 @@ export default function App() {
   };
 
   // handle share functionality
-  const handleShare = (index: number) => {
+  const handleShare = async () => {
     setExtraMenu(!extraMenu);
+    try {
+      await Share.share({
+        message: "Check out this cool note from scribbly",
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   // Hande delete functionality
@@ -118,45 +125,60 @@ export default function App() {
   };
 
   // Save the edited notes
-  const handleSaveEdit = async() => {
+  const handleSaveEdit = async () => {
     console.log(editNotes);
-    const editedNotes:any = notes?.map((note) =>
+    const editedNotes: any = notes?.map((note) =>
       note.id === currentIdRef.current
         ? { ...note, title: editNotes.title, content: editNotes.content }
         : note
     );
-    try{
+    try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(editedNotes));
-    }catch(err){
-      console.error(err)
+    } catch (err) {
+      console.error(err);
     }
     setModalVisible(false);
     console.log("editedNotes", editedNotes);
-    loadNotes()
-
+    loadNotes();
   };
 
   // handle heart button toggle, favourite
-  const handleToggleFavourite = (id: string) => {
-    const clicked = notes?.find((n) => n.id === id);
+  const handleToggleFavourite = async () => {
     setIsFavourite(!isFavourite);
-    console.log(clicked);
+    const favouriteId = currentIdRef.current;
+    const favStatus: boolean = isFavourite ? true : false;
+    console.log("FavsStatus: ", favStatus);
+    const updatedNote = notes?.map((note) =>
+      note.id === favouriteId ? { ...note, favourite: favStatus } : note
+    );
+
+    // Save the updated favourite to teh storage
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNote));
+    loadNotes();
   };
   return (
     <SafeAreaView className="flex-1 bg-primary-dark">
+      <View className="flex-row items-center justify-between mb-6 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
+        <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
+        {/* Menu button */}
+        <TouchableOpacity
+          onPress={() => {
+            setMenuOpen(!menuOpen);
+          }}
+        >
+          <Ionicons name="menu" size={27} className="text-primary-button" />
+        </TouchableOpacity>
+      </View>
+      {menuOpen && <MenuModal />}
       <ScrollView className="p-4">
-        <View className="flex-row items-center justify-between mb-6">
-          <Text className="text-2xl font-bold text-primary-button">Notes</Text>
-        </View>
-
-        <View className="space-y-4 ">
+        <View className="space-y-4 pb-20 ">
           {notes
             ?.slice()
             .reverse()
             .map((note, index) => (
               <View
                 key={index}
-                className="bg-gray-800 rounded-2xl overflow-visible p-4 shadow-lg"
+                className="bg-gray-800 rounded-2xl overflow-visible p-4  shadow-lg"
               >
                 {/* Additional stuff when ellipsis isclicked */}
                 {extraMenu && currentIndex == index && (
@@ -169,7 +191,7 @@ export default function App() {
                         const id = note.id;
                         currentIdRef.current = id;
 
-                        handleEdit(id);
+                        handleEdit();
                       }}
                       className="p-2 rounded-full hover:bg-gray-600 active:scale-95"
                     >
@@ -179,11 +201,10 @@ export default function App() {
                         color="#E5E7EB"
                       />
                     </TouchableOpacity>
-
                     {/* Share */}
                     <TouchableOpacity
                       onPress={() => {
-                        handleShare(index);
+                        handleShare();
                       }}
                       className="p-2 rounded-full hover:bg-gray-600 active:scale-95"
                     >
@@ -193,7 +214,6 @@ export default function App() {
                         color="#E5E7EB"
                       />
                     </TouchableOpacity>
-
                     {/*information */}
                     <TouchableOpacity
                       onPress={() => {
@@ -208,7 +228,6 @@ export default function App() {
                         color="#E5E7EB"
                       />
                     </TouchableOpacity>
-
                     {/* delete */}
                     <TouchableOpacity
                       onPress={() => {
@@ -251,22 +270,24 @@ export default function App() {
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-3">
-                  <Text className="text-gray-400 text-xs">
+                  <Text className="text-gray-400 text-xs ">
                     {note.date || ""}
                   </Text>
+
+                  {/* Like button, favourite */}
                   <View className="flex-row space-x-3">
                     <TouchableOpacity
                       className="outline-0"
                       onPress={() => {
                         const id = note.id;
-
-                        handleToggleFavourite(id);
+                        currentIdRef.current = id;
+                        handleToggleFavourite();
                       }}
                     >
                       <Ionicons
-                        name={isFavourite ? "heart" : "heart-outline"}
-                        size={18}
-                        color={isFavourite ? "#FF0000" : "#9CA3AF"}
+                        name={note.favourite ? "heart" : "heart-outline"}
+                        size={20}
+                        color={note.favourite ? "#A78BFA" : "#9CA3AF"}
                       />
                     </TouchableOpacity>
                   </View>
@@ -292,6 +313,29 @@ export default function App() {
             </TouchableOpacity>
           </View>
         )}
+        {/* 
+        {indicate ? (
+          <View className="items-center justify-center mt-20">
+            <ActivityIndicator size={"large"} />
+          </View>
+        ) : !notes || (notes.length === 0 && !indicate) ? (
+          <View className="items-center justify-center mt-20">
+            <Ionicons name="document-outline" size={64} color="#4B5563" />
+            <Text className="text-gray-500 mt-4 text-center">
+              No notes yet{"\n"}click button below to create your first note
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(tabs)/NewNote")}
+              className="py-2 px-4 bg-primary-button mt-4 rounded-xl shadow-xl "
+            >
+              <Text className="text-sm font-medium text-default">
+                Create new Note
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          ""
+        )} */}
 
         {/* Edit Notes Modal */}
         <Modal
@@ -344,7 +388,7 @@ export default function App() {
                   onPress={() => {
                     const id = currentId;
                     setCurrentId(id);
-                    handleSaveEdit(id ? id : "");
+                    handleSaveEdit();
                   }}
                   className="px-4 py-2 bg-primary-button rounded-xl"
                 >
