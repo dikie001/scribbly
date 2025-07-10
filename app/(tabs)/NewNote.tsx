@@ -23,7 +23,7 @@ type NoteType = {
   title: string;
   content: string;
   date: string;
-  favourite: boolean;
+  favourite: boolean | null;
 };
 const NewNote = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -34,7 +34,7 @@ const NewNote = () => {
     title: "",
     date: "",
     content: "",
-    favourite: false,
+    favourite: null,
   });
   const [notes, setNotes] = useState<NoteType[]>([]);
 
@@ -63,7 +63,7 @@ const NewNote = () => {
         content: "",
         date: "",
         id: uuidv4(),
-        favourite: false,
+        favourite: null,
       });
       setNotes([]);
     } catch (err) {

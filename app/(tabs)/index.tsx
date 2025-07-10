@@ -27,6 +27,7 @@ type NoteType = {
   favourite: boolean;
 };
 
+
 export default function App() {
   const [extraMenu, setExtraMenu] = useState<boolean>(false);
   const [notes, setNotes] = useState<NoteType[]>();
