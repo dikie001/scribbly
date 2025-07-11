@@ -8,7 +8,7 @@ module.exports = {
       colors: {
         primary: {
           dark: "#111827",
-          button: "#A78BFA",
+          button: "#6d28d9",
           light: "#ffffff",
           btnLight: "rgb(196 181 253 / 0.5)",
         },

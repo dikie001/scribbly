@@ -99,9 +99,9 @@ const NewNote = () => {
             onChangeText={(text) =>
               setNewNote((prev) => ({ ...prev, title: text }))
             }
-            placeholder="Enter title i.e code snippets..."
+            placeholder=" i.e code snippets..."
             placeholderTextColor="rgb(196 181 253 / 0.5)"
-            className="bg-gray-800 h-10 ring-1 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
+            className="bg-gray-800 h-10 ring-1 rounded-xl outline-0 px-4  text-primary-light focus:ring-2 ring-primary-btnLight "
           />
 
           {/* Content */}
@@ -116,7 +116,7 @@ const NewNote = () => {
               multiline
               textAlignVertical="top"
               placeholderTextColor="rgb(196 181 253 / 0.5)"
-              className="bg-gray-800 ring-1 py-2 min-h-20 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
+              className="bg-gray-800 ring-1 py-2 min-h-20 rounded-xl outline-0 px-4  text-primary-light focus:ring-2 ring-primary-btnLight "
             />
           </View>
 
@@ -134,7 +134,7 @@ const NewNote = () => {
                   </Text>
                 </View>
               ) : (
-                <Text className="text-center font-medium text-[16px]">
+                <Text className="text-center font-medium text-white">
                   Create note
                 </Text>
               )}

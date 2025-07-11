@@ -1,13 +1,13 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View, Switch } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
 import MenuModal from "../(components)/Menu";
 
-
 const SettingsPage = () => {
-  const [openMenu, setOpenMenu]=useState<boolean>(false)
-  // Settings state
+  const [openMenu, setOpenMenu] = useState(false);
+
+  // Initial settings state
   const [settings, setSettings] = useState({
     darkMode: true,
     autoSync: true,
@@ -16,15 +16,12 @@ const SettingsPage = () => {
     fontSize: "medium",
   });
 
-  // Toggle setting
-  const toggleSetting = (key) => {
-    setSettings((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  // Toggle setting on/off
+  const toggleSetting = (key: string) => {
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Setting sections configuration
+  // Settings sections and items
   const settingSections = [
     {
       title: "Appearance",
@@ -95,104 +92,115 @@ const SettingsPage = () => {
           subtitle: "View our privacy policy",
           icon: "shield-outline",
           type: "navigation",
+          to: "/(screen)/PrivacyPolicy",
         },
         {
           title: "Contact Support",
           subtitle: "Get help with Scribbly",
           icon: "help-circle-outline",
           type: "navigation",
+          to: "/(screen)/ContactSupport",
+        },
+        {
+          title: "Developer Info",
+          subtitle: "View app creator & tech stack",
+          icon: "code-slash-outline",
+          type: "navigation",
+          to: "/(screen)/DeveloperInfo",
         },
       ],
     },
   ];
 
-  // Render setting item based on type
-  const renderSettingItem = (item) => {
-    return (
-      <TouchableOpacity
-        key={item.title}
-        className="flex-row items-center p-4 bg-gray-800/50 rounded-2xl mb-3"
-        activeOpacity={0.7}
-        onPress={() => {
-          if (item.type === "toggle") {
-            toggleSetting(item.key);
-          }
-        }}
-      >
-        {/* Icon */}
-        <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
-          <Ionicons name={item.icon} size={20} color="#9ca3af" />
-        </View>
+  // Render a single setting item
+  const renderSettingItem = (item: any) => (
+    <TouchableOpacity
+      key={item.title}
+      activeOpacity={0.7}
+      onPress={() => {
+        item.type === "toggle" && toggleSetting(item.key);
+        item.type ==="navigation" && item.to && router.push(item.to)
+      }}
+      className="flex-row items-center p-4 bg-gray-800/50 rounded-2xl mb-3"
+    >
+      {/* Icon */}
+      <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
+        <Ionicons name={item.icon} size={20} color="#9ca3af" />
+      </View>
 
-        {/* Content */}
-        <View className="flex-1 ml-4">
-          <Text className="text-gray-200 font-medium">{item.title}</Text>
-          <Text className="text-gray-400 text-sm mt-1">{item.subtitle}</Text>
-        </View>
+      {/* Texts */}
+      <View className="flex-1 ml-4">
+        <Text className="text-gray-200 font-medium">{item.title}</Text>
+        <Text className="text-gray-400 text-sm mt-1">{item.subtitle}</Text>
+      </View>
 
-        {/* Control */}
-        <View className="ml-4">
-          {item.type === "toggle" && (
-            <Switch
-              value={item.value}
-              onValueChange={() => toggleSetting(item.key)}
-              trackColor={{ false: "#374151", true: "#6b7280" }}
-              thumbColor={item.value ? "#e5e7eb" : "#9ca3af"}
-            />
-          )}
-          {item.type === "navigation" && (
-            <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-          )}
-          {item.type === "selection" && (
-            <Text className="text-gray-400 capitalize">{item.value}</Text>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+      {/* Right-side Control */}
+      <View className="ml-4">
+        {item.type === "toggle" && (
+          <Switch
+            value={item.value}
+            onValueChange={() => toggleSetting(item.key)}
+            trackColor={{ false: "#374151", true: "#6b7280" }}
+            thumbColor={item.value ? "#e5e7eb" : "#9ca3af"}
+          />
+        )}
+        {item.type === "navigation" && (
+          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+        )}
+        {item.type === "selection" && (
+          <Text className="text-gray-400 capitalize">{item.value}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
-      <View className="justify-between flex flex-row px-4 items-center">
-        <View className="flex-row items-center p-4 pt-1 bg-primary-dark">
+      <View className="flex-row justify-between p-4 items-center">
+        <View className="flex-row items-center  pt-1">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={router.back}
             className="mr-4"
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#e5e7eb" />
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              className="text-primary-btnLight"
+            />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Settings</Text>
+          <Text className="text-primary-button text-xl font-bold">
+            Settings
+          </Text>
         </View>
-        {/* menu icon and button */}
-        <TouchableOpacity onPress={()=>setOpenMenu(!openMenu)}>
-          {" "}
+
+        {/* Menu Toggle */}
+        <TouchableOpacity onPress={() => setOpenMenu(!openMenu)}>
           <Ionicons name="menu" size={27} className="text-primary-button" />
         </TouchableOpacity>
       </View>
 
-     {/* Menu modal */}
-     {openMenu && <MenuModal/>}
-      {/* Settings Content */}
+      {/* Menu Modal */}
+      {openMenu && <MenuModal />}
+
+      {/* Settings List */}
       <ScrollView className="flex-1 p-4">
-        {settingSections.map((section, sectionIndex) => (
-          <View key={sectionIndex} className="mb-8">
-            {/* Section Title */}
+        {settingSections.map((section, i) => (
+          <View key={i} className="mb-8">
             <Text className="text-gray-400 text-sm font-medium mb-4 uppercase tracking-wide">
               {section.title}
             </Text>
-
-            {/* Section Items */}
-            <View>{section.items.map(renderSettingItem)}</View>
+            {section.items.map(renderSettingItem)}
           </View>
         ))}
 
         {/* Footer */}
-        <View className="items-center mt-8 mb-8">
-          <Text className="text-gray-600 text-sm">
-            Made with ❤️ for note-taking
-          </Text>
+        <View className="items-center mt-4 mb-8">
+          <Text className="text-primary-btnLight">
+            {" "}
+            Scribbly © {new Date().getFullYear()} — All Rights Reserved
+          </Text>{" "}
         </View>
       </ScrollView>
     </View>
