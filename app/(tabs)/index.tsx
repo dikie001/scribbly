@@ -27,7 +27,6 @@ type NoteType = {
   favourite: boolean;
 };
 
-
 export default function App() {
   const [extraMenu, setExtraMenu] = useState<boolean>(false);
   const [notes, setNotes] = useState<NoteType[]>();
@@ -37,10 +36,14 @@ export default function App() {
   const [isFavourite, setIsFavourite] = useState<boolean>();
   const [currentId, setCurrentId] = useState<string>();
   const currentIdRef = useRef<string | null>(null);
+  const [openSearchBar, setOpenSearchBar] = useState<boolean>(false);
   const currentLikeRef = useRef<boolean | null>(null);
+  const [viewMode, setViewMode] = useState<string>("list");
   const [liked, setLiked] = useState();
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [indicate, setIndicate] = useState<boolean | null>(null);
+  const [searchedNotes, setSearchedNotes] = useState<number | null>(null);
   const [informationModalVisible, setInformationModalVisible] =
     useState<boolean>(false);
   const [editNotes, setEditNotes] = useState({
@@ -157,34 +160,115 @@ export default function App() {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNote));
     loadNotes();
   };
+
+  // handle the notes view mode: grid/list
+  const handleViewMode = () => {
+    if (viewMode === "list") {
+      setViewMode("grid");
+    } else {
+      setViewMode("list");
+    }
+  };
+
+  // Get Notes function for search functionality
+  const getNotes = async () => {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    setNotes(parsed);
+  };
+
+  // handle search functionality, search for notes based on the title and content
+  const handleSearchQuery = (text: string) => {
+    if (!notes || (notes.length === 0 && searchedNotes !== 0)) {
+      getNotes();
+    }
+    setSearchQuery(text);
+    const filteredNotes =
+      notes?.filter((note: NoteType) =>
+        note.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      ) || note.content?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    setNotes(filteredNotes);
+    if (!filteredNotes || filteredNotes.length === 0) {
+      setSearchedNotes(0);
+      console.log("no notes by that name");
+    }
+    console.log(filteredNotes);
+  };
   return (
     <SafeAreaView className="flex-1 bg-primary-dark">
       <View className="flex-row items-center justify-between mb-6 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
+        {" "}
         <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
-        {/* Menu button */}
-        <TouchableOpacity
-          onPress={() => {
-            setMenuOpen(!menuOpen);
-          }}
-        >
-          <Ionicons name="menu" size={27} className="text-primary-button" />
-        </TouchableOpacity>
+        <View className="flex flex-row justify-center items-center gap-5">
+          {/* Search button */}
+          <TouchableOpacity
+            onPress={() => {
+              setOpenSearchBar(!openSearchBar);
+              loadNotes();
+            }}
+          >
+            <Ionicons name="search" size={20} className="text-primary-button" />
+          </TouchableOpacity>
+
+          {/* Notes view Mode: grid/list */}
+          <TouchableOpacity onPress={handleViewMode}>
+            <Ionicons
+              name={viewMode === "list" ? "list" : "grid"}
+              size={20}
+              className="text-primary-button"
+            />
+          </TouchableOpacity>
+
+          {/* Menu button */}
+          <TouchableOpacity
+            onPress={() => {
+              setMenuOpen(!menuOpen);
+            }}
+          >
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
+        </View>
       </View>
       {menuOpen && <MenuModal />}
+      {openSearchBar && (
+        <View className="bg-primary-dark px-[15px]">
+          <TextInput
+            placeholder="search for a note"
+            autoFocus
+            onChangeText={handleSearchQuery}
+            autoCorrect
+            placeholderTextColor={"rgb(196 181 253 / 0.5)"}
+            className="h-9 focus:ring ring-1 ring-primary-button px-4 text-[16px] text-primary-light max-w-sm outline-0 bg-slate-800 rounded-xl"
+          />
+          <Ionicons
+            name="close"
+            className="absolute text-primary-button top-2 right-6 "
+            onPress={() => {
+              setSearchQuery("");
+              setOpenSearchBar(!openSearchBar);
+              loadNotes();
+            }}
+            size={18}
+          />
+        </View>
+      )}
       <ScrollView className="p-4">
-        <View className="space-y-4 pb-20 ">
+        <View
+          className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : "space-y-3"}`}
+        >
           {notes
             ?.slice()
             .reverse()
             .map((note, index) => (
               <View
                 key={index}
-                className="bg-gray-800 rounded-2xl overflow-visible p-4  shadow-lg"
+                className="bg-gray-800  rounded-2xl  overflow-visible p-4  shadow-lg"
               >
                 {/* Additional stuff when ellipsis isclicked */}
                 {extraMenu && currentIndex == index && (
                   <View
-                    className={` absolute top-1 right-14 mt-2 z-50 flex-row items-center bg-gray-700 rounded-2xl px-3 py-2 shadow-2xl border border-gray-600 space-x-3`}
+                    className={`${viewMode === "grid" ? "right-2 top-10 space-x-0 " : "right-14 px-3 space-x-3 top-1 "} absolute mt-2 z-50 flex-row items-center bg-gray-700 rounded-2xl  py-2 shadow-2xl border border-gray-600 `}
                   >
                     {/* edit */}
                     <TouchableOpacity
@@ -271,9 +355,11 @@ export default function App() {
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-3">
-                  <Text className="text-gray-400 text-xs ">
-                    {note.date || ""}
-                  </Text>
+                 
+                    <Text className="text-gray-400 text-xs ">
+                     {viewMode === 'list' && <Ionicons name="time" className="text-primary-button "/>} {note.date || ""}
+                    </Text>
+           
 
                   {/* Like button, favourite */}
                   <View className="flex-row space-x-3">
@@ -285,7 +371,7 @@ export default function App() {
                         handleToggleFavourite();
                       }}
                     >
-                      <Ionicons
+                      <Ionicons 
                         name={note.favourite ? "heart" : "heart-outline"}
                         size={20}
                         color={note.favourite ? "#A78BFA" : "#9CA3AF"}
@@ -298,7 +384,7 @@ export default function App() {
         </View>
 
         {/* No note in storage */}
-        {(!notes || notes.length === 0) && (
+        {(!notes || (notes.length === 0 && searchedNotes !== 0)) && (
           <View className="items-center justify-center mt-20">
             <Ionicons name="document-outline" size={64} color="#4B5563" />
             <Text className="text-gray-500 mt-4 text-center">
@@ -311,6 +397,28 @@ export default function App() {
               <Text className="text-sm font-medium text-default">
                 Create new Note
               </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* No notes found in storage matching the searchQuery */}
+        {searchedNotes === 0 && (
+          <View className="items-center justify-center mt-20">
+            <Ionicons name="folder-open-outline" size={64} color="#4B5563" />
+            <Text className="text-gray-400 mt-3 text-center">
+              No match found!
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                // revoke the searchbar, reload the notes from storage
+                setSearchQuery("");
+                setOpenSearchBar(false);
+                setSearchedNotes(null);
+                loadNotes();
+              }}
+              className="py-2 px-6 bg-primary-button mt-4 rounded-xl shadow-xl "
+            >
+              <Text className="text-sm font-medium text-default">Exit</Text>
             </TouchableOpacity>
           </View>
         )}

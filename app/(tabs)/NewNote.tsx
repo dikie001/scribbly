@@ -99,8 +99,8 @@ const NewNote = () => {
             onChangeText={(text) =>
               setNewNote((prev) => ({ ...prev, title: text }))
             }
-            placeholder="Enter title i.e Code snippets..."
-            placeholderTextColor="#9CA3AF"
+            placeholder="Enter title i.e code snippets..."
+            placeholderTextColor="rgb(196 181 253 / 0.5)"
             className="bg-gray-800 h-10 ring-1 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
           />
 
@@ -115,7 +115,7 @@ const NewNote = () => {
               placeholder="Start typing your thoughts... "
               multiline
               textAlignVertical="top"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="rgb(196 181 253 / 0.5)"
               className="bg-gray-800 ring-1 py-2 min-h-20 rounded-xl outline-none px-5 text-[16px] text-primary-light focus:ring ring-primary-btnLight "
             />
           </View>
@@ -141,9 +141,8 @@ const NewNote = () => {
             </View>
           </TouchableOpacity>
         </View>
-        {menuOpen && <MenuModal/>}
+        {menuOpen && <MenuModal />}
       </View>
-      
     </SafeAreaView>
   );
 };

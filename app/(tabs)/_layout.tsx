@@ -38,6 +38,7 @@ export default function TabLayout() {
           backgroundColor: "#1f2937",
           height: 55,
           width: 336,
+     
           borderRadius: 25,
           marginBottom: 20,
           marginHorizontal: "auto",
