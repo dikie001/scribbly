@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MenuModal from "../(components)/Menu";
 import "../../global.css";
+import { useMenu } from "../context/MenuContext";
 
 const TRASH_KEY = "scribbly-trash";
 
@@ -28,12 +28,10 @@ export default function App() {
   const [extraMenu, setExtraMenu] = useState<boolean>(false);
   const [notes, setNotes] = useState<NoteType[]>();
   const [currentIndex, setCurrentIndex] = useState<number>();
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [trash, setTrash] = useState<NoteType[]>([]);
-  const [isFavourite, setIsFavourite] = useState<boolean>();
   const currentIdRef = useRef<string | null>(null);
-  const currentLikeRef = useRef<boolean | null>(null);
-  const confirmRef = useRef<boolean | null>(null)
+
+  const confirmRef = useRef<boolean | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState<boolean>(false);
 
@@ -41,8 +39,8 @@ export default function App() {
   const [informationModalVisible, setInformationModalVisible] =
     useState<boolean>(false);
 
-
   const [viewNote, setViewNote] = useState<any>();
+  const { toggleMenu } = useMenu();
 
   useFocusEffect(
     useCallback(() => {
@@ -97,26 +95,37 @@ export default function App() {
   };
 
   const ConfirmDelete = () => {
-    confirmRef.current = true
+    confirmRef.current = true;
   };
 
   return (
     <SafeAreaView className="flex-1 bg-primary-dark">
       <View className="flex-row items-center justify-between mb-6 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
-        <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
-        {/* Menu button */}
-        <TouchableOpacity
-          onPress={() => {
-            console.log("open the menu");
-            setMenuOpen(!menuOpen);
-          }}
-        >
-          <Ionicons name="menu" size={27} className="text-primary-button" />
-        </TouchableOpacity>
+        <View className="flex flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-4"
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              className="text-primary-btnLight"
+            />
+          </TouchableOpacity>
+          <Text className="text-2xl font-bold text-primary-button">
+            Scribbly
+          </Text>
+        </View>
+        <View>
+          {/* Menu button */}
+          <TouchableOpacity onPress={toggleMenu}>
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView className="p-4">
-        {menuOpen && <MenuModal />}
         <View className="space-y-4 pb-20 ">
           {notes
             ?.slice()
@@ -150,11 +159,11 @@ export default function App() {
                       onPress={async () => {
                         setConfirmDeleteModal(true);
                         const id = note.id;
-                         if (confirmRef.current === true) {
+                        if (confirmRef.current === true) {
                           handleDelete(id);
-                          console.log('deleted')
-                        }else{
-                            console.log('denied')
+                          console.log("deleted");
+                        } else {
+                          console.log("denied");
                         }
                       }}
                       className="p-2 rounded-full hover:bg-gray-600 active:scale-95"

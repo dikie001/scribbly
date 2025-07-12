@@ -1,23 +1,39 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
+  Linking,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-  Linking,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useMenu } from "../context/MenuContext";
 
 const DeveloperInfoPage = () => {
+  const { toggleMenu } = useMenu();
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
-      <View className="flex-row items-center px-4 py-4">
-        <TouchableOpacity onPress={router.back} className="mr-4">
-          <Ionicons name="chevron-back" size={24} className="text-primary-btnLight"/>
-        </TouchableOpacity>
-        <Text className="text-primary-button text-xl font-bold">Developer Info</Text>
+      <View className="flex-row items-center px-4 py-4 justify-between">
+        <View className="flex flex-row">
+          <TouchableOpacity onPress={router.back} className="mr-4">
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              className="text-primary-btnLight"
+            />
+          </TouchableOpacity>
+          <Text className="text-primary-button text-xl font-bold">
+            Developer Info
+          </Text>
+        </View>
+        <View>
+          {/* Menu button */}
+          <TouchableOpacity onPress={toggleMenu}>
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Content */}
@@ -58,7 +74,8 @@ const DeveloperInfoPage = () => {
           </View>
           <Text className="text-gray-400 text-sm leading-relaxed">
             • React Native (Expo){"\n"}• TypeScript{"\n"}• NativeWind +
-            TailwindCSS{"\n"}• AsyncStorage{"\n"}• Expo Router{"\n"}• Ionicons
+            TailwindCSS{"\n"}• AsyncStorage{"\n"}• Expo Router{"\n"}•Context API
+            {"\n"}• Ionicons
           </Text>
         </View>
 
@@ -109,6 +126,17 @@ const DeveloperInfoPage = () => {
             <Ionicons name="logo-github" size={20} color="#a1a1aa" />
             <Text className="text-gray-300 ml-2">github.com/dikie001</Text>
           </TouchableOpacity>
+        </View>
+        {/* Buy me coffee */}
+                <View className="bg-gray-900 rounded-xl p-4 mb-4 shadow-xl shadow-black/60 ">
+
+        <TouchableOpacity
+          onPress={() => router.push("/(optionals)/BuyMeCoffee")}
+          className="flex-row items-center space-x-2 p-3 rounded-xl bg-white/5"
+        >
+          <Ionicons name="cafe" size={24} color="#FBBF24" />{" "}
+          <Text className="text-white font-medium">Buy Me Coffee</Text>
+        </TouchableOpacity>
         </View>
 
         {/* Footer */}

@@ -9,8 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useMenu } from "../context/MenuContext";
 
 const ContactPage = () => {
+  const { toggleMenu } = useMenu();
   // Form state
   const [form, setForm] = useState({
     name: "",
@@ -72,21 +74,29 @@ const ContactPage = () => {
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
-      <View className="flex-row items-center p-4 bg-primary-dark">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="mr-4"
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={24}
-            className="text-primary-btnLight"
-          />
-        </TouchableOpacity>
-        <Text className="text-primary-button text-xl font-bold">
-          Contact Support
-        </Text>
+      <View className="flex-row items-center p-4 bg-primary-dark justify-between">
+        <View className="flex flex-row items-center">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="mr-4"
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              className="text-primary-btnLight"
+            />
+          </TouchableOpacity>
+          <Text className="text-primary-button text-xl font-bold">
+            Contact Support
+          </Text>
+        </View>
+        <View>
+          {/* Menu button */}
+          <TouchableOpacity onPress={toggleMenu}>
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView className="flex-1 p-4">
@@ -222,7 +232,7 @@ const ContactPage = () => {
             We typically respond within 24 hours
           </Text>
         </View>
-        <View  className="items-center mb-8">
+        <View className="items-center mb-8">
           <Text className="text-primary-btnLight text-sm text-center">
             Scribbly © {new Date().getFullYear()} | All Rights Reserved
           </Text>

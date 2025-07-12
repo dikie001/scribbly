@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Modal,
   SafeAreaView,
@@ -13,8 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MenuModal from "../(components)/Menu";
 import "../../global.css";
+import { useMenu } from "../context/MenuContext";
+import { fetchName } from "../utils/auth";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";
@@ -41,7 +42,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<string>("list");
   const [liked, setLiked] = useState();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
   const [indicate, setIndicate] = useState<boolean | null>(null);
   const [searchedNotes, setSearchedNotes] = useState<number | null>(null);
   const [informationModalVisible, setInformationModalVisible] =
@@ -54,13 +55,24 @@ export default function App() {
   });
 
   const [viewNote, setViewNote] = useState<any>();
+  const { toggleMenu } = useMenu();
 
+  // On focusing the page
   useFocusEffect(
     useCallback(() => {
       loadNotes();
       return;
     }, [])
   );
+
+  // On first render of the page
+  useEffect(() => {
+    const loadName = async () => {
+      const name = await fetchName();
+      setUsername(name);
+    };
+    loadName();
+  }, []);
   const loadNotes = async () => {
     try {
       const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
@@ -183,10 +195,9 @@ export default function App() {
       getNotes();
     }
     setSearchQuery(text);
-    const filteredNotes =
-      notes?.filter((note: NoteType) =>
-        note.title?.toLowerCase().includes(searchQuery.toLowerCase())
-      ) || note.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredNotes = notes?.filter((note: NoteType) =>
+      note.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     setNotes(filteredNotes);
     if (!filteredNotes || filteredNotes.length === 0) {
@@ -198,8 +209,9 @@ export default function App() {
   return (
     <SafeAreaView className="flex-1 bg-primary-dark">
       <View className="flex-row items-center justify-between mb-6 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
-        {" "}
-        <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
+        <Text className="text-xl font-bold text-primary-button">
+          Welcome, {username}
+        </Text>
         <View className="flex flex-row justify-center items-center gap-5">
           {/* Search button */}
           <TouchableOpacity
@@ -221,16 +233,12 @@ export default function App() {
           </TouchableOpacity>
 
           {/* Menu button */}
-          <TouchableOpacity
-            onPress={() => {
-              setMenuOpen(!menuOpen);
-            }}
-          >
+          <TouchableOpacity onPress={toggleMenu}>
             <Ionicons name="menu" size={27} className="text-primary-button" />
           </TouchableOpacity>
         </View>
       </View>
-      {menuOpen && <MenuModal />}
+
       {openSearchBar && (
         <View className="bg-primary-dark px-[15px]">
           <TextInput
@@ -355,11 +363,12 @@ export default function App() {
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-3">
-                 
-                    <Text className="text-gray-400 text-xs ">
-                     {viewMode === 'list' && <Ionicons name="time" className="text-primary-button "/>} {note.date || ""}
-                    </Text>
-           
+                  <Text className="text-gray-400 text-xs ">
+                    {viewMode === "list" && (
+                      <Ionicons name="time" className="text-primary-button " />
+                    )}{" "}
+                    {note.date || ""}
+                  </Text>
 
                   {/* Like button, favourite */}
                   <View className="flex-row space-x-3">
@@ -371,7 +380,7 @@ export default function App() {
                         handleToggleFavourite();
                       }}
                     >
-                      <Ionicons 
+                      <Ionicons
                         name={note.favourite ? "heart" : "heart-outline"}
                         size={20}
                         color={note.favourite ? "#A78BFA" : "#9CA3AF"}

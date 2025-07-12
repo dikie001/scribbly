@@ -8,22 +8,30 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useMenu } from "../context/MenuContext";
 
 const AuthSupportPage = () => {
+  const { toggleMenu } = useMenu();
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4">
+      <View className="flex-row items-center justify-between p-4">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={router.back} className="mr-4">
-            <Ionicons name="chevron-back" size={24} color="#e5e7eb" />
+            <Ionicons name="chevron-back" size={24} className="text-primary-btnLight" />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold">Auth Support</Text>
+          <Text className="text-primary-button text-xl font-bold">Auth Support</Text>
+        </View>
+        <View>
+          {/* Menu button */}
+          <TouchableOpacity onPress={toggleMenu}>
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* Content */}
-      <ScrollView className="px-4 pb-10">
+      <ScrollView className="px-4 pb-10 pt-4">
         {/* Info */}
         <Text className="text-gray-300 mb-4 leading-6">
           Having trouble signing in, unlocking Scribbly, or accessing your
@@ -67,7 +75,7 @@ const AuthSupportPage = () => {
         </TouchableOpacity>
 
         {/* Note */}
-        <Text className="text-gray-600 text-sm text-center mt-6">
+        <Text className="text-primary-btnLight text-sm text-center mt-6">
           We'll get back to you within 24 hours.
         </Text>
       </ScrollView>

@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useMenu } from "../context/MenuContext";
 
 const FeatureRequestPage = () => {
+  const { toggleMenu } = useMenu();
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
@@ -25,6 +27,12 @@ const FeatureRequestPage = () => {
           <Text className="text-primary-button text-xl font-bold">
             Feature Request
           </Text>
+        </View>
+        <View>
+          {/* Menu button */}
+          <TouchableOpacity onPress={toggleMenu}>
+            <Ionicons name="menu" size={27} className="text-primary-button" />
+          </TouchableOpacity>
         </View>
       </View>
 

@@ -2,9 +2,14 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Modal, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useMenu } from "../context/MenuContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+const SHOW_LOGIN_PAGE = "scribbly-show-login-page";
+
 
 const MenuModal = () => {
-  const [open, setOpen] = useState(true);
+const {isMenuOpen, closeMenu}=useMenu()
+
 
   // Menu items configuration
   const menuItems = [
@@ -29,20 +34,28 @@ const MenuModal = () => {
       icon: "map-outline",
       route: "/_sitemap",
     },
+  
   ];
 
   // Handle menu item press
-  const handleMenuPress = (route) => {
-    setOpen(false);
+  const handleMenuPress = (route:any) => {
+    closeMenu()
     router.push(route);
   };
 
+  // Logout
+  const Logout=async()=>{
+    await AsyncStorage.setItem(SHOW_LOGIN_PAGE, "false")
+    closeMenu()
+    router.push('/authentication/Login')
+  }
+
   return (
     <Modal
-      visible={open}
+      visible={isMenuOpen}
       transparent
       animationType="fade"
-      onRequestClose={() => setOpen(false)}
+      onRequestClose={closeMenu}
     >
       {/* Backdrop */}
       <View className="flex-1 bg-black/70 justify-center items-center px-6">
@@ -90,14 +103,24 @@ const MenuModal = () => {
             ))}
           </View>
 
-          {/* Cancel Button */}
           <TouchableOpacity
-            onPress={() => setOpen(false)}
-            className="mt-6 p-3"
+            onPress={Logout}
+            className="mt-6 p-3 bg-red-700/20 rounded-xl shadow-xl "
             activeOpacity={0.7}
           >
-            <Text className="text-gray-500 text-center font-medium">
-              Cancel
+            <Text className="text-gray-400  text-center font-medium ">
+              Logout
+            </Text>
+          </TouchableOpacity>
+
+          {/* Cancel Button */}
+          <TouchableOpacity
+            onPress={closeMenu}
+            className="mt-6 p-3 bg-violet-700/20 rounded-xl shadow-xl "
+            activeOpacity={0.7}
+          >
+            <Text className="text-gray-400  text-center font-medium ">
+              close
             </Text>
           </TouchableOpacity>
         </View>

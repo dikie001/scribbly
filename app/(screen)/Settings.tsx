@@ -2,163 +2,24 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
-import MenuModal from "../(components)/Menu";
+import { RadioButton } from "react-native-paper";
+import { useMenu } from "../context/MenuContext";
 
 const SettingsPage = () => {
-  const [openMenu, setOpenMenu] = useState(false);
+  const { toggleMenu } = useMenu();
 
-  // Initial settings state
-  const [settings, setSettings] = useState({
-    darkMode: true,
-    autoSync: true,
-    notifications: false,
-    autoSave: true,
-    fontSize: "medium",
-  });
-
-  // Toggle setting on/off
-  const toggleSetting = (key: string) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // Settings sections and items
-  const settingSections = [
-    {
-      title: "Appearance",
-      items: [
-        {
-          title: "Dark Mode",
-          subtitle: "Use dark theme",
-          icon: "moon-outline",
-          type: "toggle",
-          key: "darkMode",
-          value: settings.darkMode,
-        },
-        {
-          title: "Font Size",
-          subtitle: "Adjust text size",
-          icon: "text-outline",
-          type: "selection",
-          key: "fontSize",
-          value: settings.fontSize,
-        },
-      ],
-    },
-    {
-      title: "Sync & Storage",
-      items: [
-        {
-          title: "Auto Sync",
-          subtitle: "Sync notes across devices",
-          icon: "cloud-outline",
-          type: "toggle",
-          key: "autoSync",
-          value: settings.autoSync,
-        },
-        {
-          title: "Auto Save",
-          subtitle: "Save changes automatically",
-          icon: "save-outline",
-          type: "toggle",
-          key: "autoSave",
-          value: settings.autoSave,
-        },
-      ],
-    },
-    {
-      title: "Notifications",
-      items: [
-        {
-          title: "Push Notifications",
-          subtitle: "Receive app notifications",
-          icon: "notifications-outline",
-          type: "toggle",
-          key: "notifications",
-          value: settings.notifications,
-        },
-      ],
-    },
-    {
-      title: "About",
-      items: [
-        {
-          title: "App Version",
-          subtitle: "1.0.0",
-          icon: "information-circle-outline",
-          type: "info",
-        },
-        {
-          title: "Privacy Policy",
-          subtitle: "View our privacy policy",
-          icon: "shield-outline",
-          type: "navigation",
-          to: "/(screen)/PrivacyPolicy",
-        },
-        {
-          title: "Contact Support",
-          subtitle: "Get help with Scribbly",
-          icon: "help-circle-outline",
-          type: "navigation",
-          to: "/(screen)/ContactSupport",
-        },
-        {
-          title: "Developer Info",
-          subtitle: "View app creator & tech stack",
-          icon: "code-slash-outline",
-          type: "navigation",
-          to: "/(screen)/DeveloperInfo",
-        },
-      ],
-    },
-  ];
-
-  // Render a single setting item
-  const renderSettingItem = (item: any) => (
-    <TouchableOpacity
-      key={item.title}
-      activeOpacity={0.7}
-      onPress={() => {
-        item.type === "toggle" && toggleSetting(item.key);
-        item.type ==="navigation" && item.to && router.push(item.to)
-      }}
-      className="flex-row items-center p-4 bg-gray-800/50 rounded-2xl mb-3"
-    >
-      {/* Icon */}
-      <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
-        <Ionicons name={item.icon} size={20} color="#9ca3af" />
-      </View>
-
-      {/* Texts */}
-      <View className="flex-1 ml-4">
-        <Text className="text-gray-200 font-medium">{item.title}</Text>
-        <Text className="text-gray-400 text-sm mt-1">{item.subtitle}</Text>
-      </View>
-
-      {/* Right-side Control */}
-      <View className="ml-4">
-        {item.type === "toggle" && (
-          <Switch
-            value={item.value}
-            onValueChange={() => toggleSetting(item.key)}
-            trackColor={{ false: "#374151", true: "#6b7280" }}
-            thumbColor={item.value ? "#e5e7eb" : "#9ca3af"}
-          />
-        )}
-        {item.type === "navigation" && (
-          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-        )}
-        {item.type === "selection" && (
-          <Text className="text-gray-400 capitalize">{item.value}</Text>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+  // Simple settings states
+  const [darkMode, setDarkMode] = useState(true);
+  const [autoSave, setAutoSave] = useState(true);
+  const [notifications, setNotifications] = useState(false);
+  const [usePin, setUsePin] = useState(true);
+  const [checked, setChecked] = useState<boolean>();
 
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
       <View className="flex-row justify-between p-4 items-center">
-        <View className="flex-row items-center  pt-1">
+        <View className="flex-row items-center">
           <TouchableOpacity
             onPress={router.back}
             className="mr-4"
@@ -175,36 +36,148 @@ const SettingsPage = () => {
           </Text>
         </View>
 
-        {/* Menu Toggle */}
-        <TouchableOpacity onPress={() => setOpenMenu(!openMenu)}>
-          <Ionicons name="menu" size={27} className="text-primary-button" />
+        <TouchableOpacity onPress={toggleMenu}>
+          <Ionicons name="menu" size={27} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* Menu Modal */}
-      {openMenu && <MenuModal />}
-
       {/* Settings List */}
-      <ScrollView className="flex-1 p-4">
-        {settingSections.map((section, i) => (
-          <View key={i} className="mb-8">
-            <Text className="text-gray-400 text-sm font-medium mb-4 uppercase tracking-wide">
-              {section.title}
-            </Text>
-            {section.items.map(renderSettingItem)}
-          </View>
-        ))}
+      <ScrollView className="p-4">
+    
+        {/* Toggles */}
+        <SettingItem
+          title="Dark Mode"
+          subtitle="Use dark theme"
+          icon="moon-outline"
+          value={darkMode}
+          onToggle={() => setDarkMode(!darkMode)}
+        />
+        <SettingItem
+          title="Notes View Style"
+          subtitle={`Currently: ${checked ? "Grid View" : "List View"}`}
+          icon={checked ? "grid" : "list"}
+          value={checked}
+          onToggle={() => setChecked(!checked)}
+        />
+
+        <SettingItem
+          title="Auto Save"
+          subtitle="Save notes automatically"
+          icon="save-outline"
+          value={autoSave}
+          onToggle={() => setAutoSave(!autoSave)}
+        />
+
+        <SettingItem
+          title="Notifications"
+          subtitle="Enable notifications"
+          icon="notifications-outline"
+          value={notifications}
+          onToggle={() => setNotifications(!notifications)}
+        />
+
+        <SettingItem
+          title="Use 4-digit PIN"
+          subtitle="Secure app access"
+          icon="lock-closed-outline"
+          value={usePin}
+          onToggle={() => setUsePin(!usePin)}
+        />
+
+        {/* Navigation buttons */}
+        <NavItem
+          title="Privacy Policy"
+          subtitle="How we handle data"
+          icon="shield-outline"
+          to="/(screen)/PrivacyPolicy"
+        />
+        <NavItem
+          title="Reset Pin"
+          subtitle="Change your app login PIN"
+          icon="lock-closed-outline"
+          to="/(screen)/ResetPin"
+        />
+
+        <NavItem
+          title="Contact Support"
+          subtitle="Help & feedback"
+          icon="help-circle-outline"
+          to="/(screen)/ContactSupport"
+        />
+
+        <NavItem
+          title="Developer Info"
+          subtitle="Developer & tech stack"
+          icon="code-slash-outline"
+          to="/(screen)/DeveloperInfo"
+        />
+
+        {/* App version - no navigation */}
+        <InfoItem
+          title="App Version"
+          subtitle="1.0.0"
+          icon="information-circle-outline"
+        />
 
         {/* Footer */}
-        <View className="items-center mt-4 mb-8">
-          <Text className="text-primary-btnLight">
-            {" "}
+        <View className="items-center mt-8 mb-10">
+          <Text className="text-gray-500 text-sm">
             Scribbly © {new Date().getFullYear()} — All Rights Reserved
-          </Text>{" "}
+          </Text>
         </View>
       </ScrollView>
     </View>
   );
 };
+
+// 🔘 Basic toggle switch
+const SettingItem = ({ title, subtitle, icon, value, onToggle }: any) => (
+  <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
+      <Ionicons name={icon} size={20} color="#9ca3af" />
+    </View>
+    <View className="flex-1 ml-4">
+      <Text className="text-white font-medium">{title}</Text>
+      <Text className="text-gray-400 text-sm">{subtitle}</Text>
+    </View>
+    <Switch
+      value={value}
+      onValueChange={onToggle}
+      trackColor={{ false: "#374151", true: "#4ade80" }}
+      thumbColor={value ? "#6d28d9" : "#9ca3af"}
+    />
+  </View>
+);
+
+// 👉 Nav item (chevron)
+const NavItem = ({ title, subtitle, icon, to }: any) => (
+  <TouchableOpacity
+    onPress={() => router.push(to)}
+    className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
+    activeOpacity={0.7}
+  >
+    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
+      <Ionicons name={icon} size={20} color="#9ca3af" />
+    </View>
+    <View className="flex-1 ml-4">
+      <Text className="text-white font-medium">{title}</Text>
+      <Text className="text-gray-400 text-sm">{subtitle}</Text>
+    </View>
+    <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+  </TouchableOpacity>
+);
+
+// ℹ️ Static info (no nav)
+const InfoItem = ({ title, subtitle, icon }: any) => (
+  <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
+      <Ionicons name={icon} size={20} color="#9ca3af" />
+    </View>
+    <View className="flex-1 ml-4">
+      <Text className="text-white font-medium">{title}</Text>
+      <Text className="text-gray-400 text-sm">{subtitle}</Text>
+    </View>
+  </View>
+);
 
 export default SettingsPage;

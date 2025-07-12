@@ -4,19 +4,19 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
+  Dimensions,
   Modal,
   SafeAreaView,
   ScrollView,
   Share,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  StatusBar,
-  Dimensions,
 } from "react-native";
-import MenuModal from "../(components)/Menu";
 import "../../global.css";
+import MenuModal from "../modals/MenuModal";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";

@@ -12,7 +12,8 @@ import {
   View,
 } from "react-native";
 import { v4 as uuidv4 } from "uuid";
-import MenuModal from "../(components)/Menu";
+import MenuModal from "../modals/MenuModal";
+import { useMenu } from "../context/MenuContext";
 
 dayjs.extend(advanceFormat);
 
@@ -28,6 +29,7 @@ type NoteType = {
 const NewNote = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const {toggleMenu}=useMenu()
 
   const [newNote, setNewNote] = useState({
     id: uuidv4(),
@@ -78,10 +80,7 @@ const NewNote = () => {
         <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
         {/* Menu button */}
         <TouchableOpacity
-          onPress={() => {
-            console.log("open the menu");
-            setMenuOpen(!menuOpen);
-          }}
+          onPress={toggleMenu}
         >
           <Ionicons name="menu" size={27} className="text-primary-button" />
         </TouchableOpacity>

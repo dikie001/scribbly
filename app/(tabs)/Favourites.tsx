@@ -13,8 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MenuModal from "../(components)/Menu";
 import "../../global.css";
+import MenuModal from "../modals/MenuModal";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";
@@ -65,7 +65,7 @@ export default function App() {
     try {
       const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
       const parsedData: NoteType[] = loadedData ? JSON.parse(loadedData) : [];
-      const favouriteNotes = parsedData.filter((item)=>item.favourite)
+      const favouriteNotes = parsedData.filter((item) => item.favourite);
       setNotes(favouriteNotes);
     } catch (err) {
       console.log(err);
