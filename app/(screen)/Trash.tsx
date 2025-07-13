@@ -45,7 +45,6 @@ export default function App() {
   useFocusEffect(
     useCallback(() => {
       loadNotes();
-      return;
     }, [])
   );
   const loadNotes = async () => {
@@ -56,7 +55,6 @@ export default function App() {
       setNotes(favouriteNotes);
     } catch (err) {
       console.log(err);
-    } finally {
     }
   };
 

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Modal,
   SafeAreaView,
@@ -14,7 +14,9 @@ import {
   View,
 } from "react-native";
 import "../../global.css";
-import MenuModal from "../modals/MenuModal";
+import { useMenu } from "../context/MenuContext";
+import { fetchName, getMode } from "../utils/miniFunctions";
+import { parse } from "@babel/core";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";
@@ -41,7 +43,7 @@ export default function App() {
   const [viewMode, setViewMode] = useState<string>("list");
   const [liked, setLiked] = useState();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>("");
   const [indicate, setIndicate] = useState<boolean | null>(null);
   const [searchedNotes, setSearchedNotes] = useState<number | null>(null);
   const [informationModalVisible, setInformationModalVisible] =
@@ -54,18 +56,47 @@ export default function App() {
   });
 
   const [viewNote, setViewNote] = useState<any>();
+  const { toggleMenu } = useMenu();
 
+  // On first render of the page
+  useEffect(() => {
+    // load the username from storage
+    const loadName = async () => {
+      const name = await fetchName();
+      setUsername(name);
+    };
+    loadName();
+  }, []);
+
+  // On focusing the page
   useFocusEffect(
     useCallback(() => {
       loadNotes();
+      // Notes view mode: list/grid
+      loadViewMode();
       return;
     }, [])
   );
+
+  // Load the mode settings from storage
+  const loadViewMode = async () => {
+    const mode = await getMode();
+    const parsed = mode ? JSON.parse(mode) : [];
+    console.log(parsed.viewMode);
+    if (parsed.viewMode === true) {
+      setViewMode("list");
+    } else if (parsed.viewMode === false) {
+      setViewMode("grid");
+    }
+    console.log(viewMode);
+  };
+
+  // Load notes from storage
   const loadNotes = async () => {
     try {
       const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
       const parsedData: NoteType[] = loadedData ? JSON.parse(loadedData) : [];
-      const favouriteNotes = parsedData.filter((item) => item.favourite);
+      const favouriteNotes = parsedData.filter((item)=>item.favourite)
       setNotes(favouriteNotes);
     } catch (err) {
       console.log(err);
@@ -149,7 +180,7 @@ export default function App() {
 
   // handle heart button toggle, favourite
   const handleToggleFavourite = async () => {
-    setIsFavourite(!isFavourite);
+    // setIsFavourite(!isFavourite);
     const favouriteId = currentIdRef.current;
     const favStatus: boolean = isFavourite ? true : false;
     console.log("FavsStatus: ", favStatus);
@@ -163,13 +194,13 @@ export default function App() {
   };
 
   // handle the notes view mode: grid/list
-  const handleViewMode = () => {
-    if (viewMode === "list") {
-      setViewMode("grid");
-    } else {
-      setViewMode("list");
-    }
-  };
+  // const handleViewMode = () => {
+  //   if (viewMode === "list") {
+  //     setViewMode("grid");
+  //   } else {
+  //     setViewMode("list");
+  //   }
+  // };
 
   // Get Notes function for search functionality
   const getNotes = async () => {
@@ -184,10 +215,9 @@ export default function App() {
       getNotes();
     }
     setSearchQuery(text);
-    const filteredNotes =
-      notes?.filter((note: NoteType) =>
-        note.title?.toLowerCase().includes(searchQuery.toLowerCase())
-      ) || note.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredNotes = notes?.filter((note: NoteType) =>
+      note.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     setNotes(filteredNotes);
     if (!filteredNotes || filteredNotes.length === 0) {
@@ -199,8 +229,9 @@ export default function App() {
   return (
     <SafeAreaView className="flex-1 bg-primary-dark">
       <View className="flex-row items-center justify-between mb-6 px-4 pt-2 bg-primary-dark  sticky top-0 z-10">
-        {" "}
-        <Text className="text-2xl font-bold text-primary-button">Scribbly</Text>
+        <Text className="text-xl font-bold text-primary-button">
+          Hi, {username}
+        </Text>
         <View className="flex flex-row justify-center items-center gap-5">
           {/* Search button */}
           <TouchableOpacity
@@ -213,25 +244,21 @@ export default function App() {
           </TouchableOpacity>
 
           {/* Notes view Mode: grid/list */}
-          <TouchableOpacity onPress={handleViewMode}>
+          {/* <TouchableOpacity onPress={handleViewMode}>
             <Ionicons
               name={viewMode === "list" ? "list" : "grid"}
               size={20}
               className="text-primary-button"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Menu button */}
-          <TouchableOpacity
-            onPress={() => {
-              setMenuOpen(!menuOpen);
-            }}
-          >
+          <TouchableOpacity onPress={toggleMenu}>
             <Ionicons name="menu" size={27} className="text-primary-button" />
           </TouchableOpacity>
         </View>
       </View>
-      {menuOpen && <MenuModal />}
+
       {openSearchBar && (
         <View className="bg-primary-dark px-[15px]">
           <TextInput
@@ -256,7 +283,7 @@ export default function App() {
       )}
       <ScrollView className="p-4">
         <View
-          className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : "space-y-3"}`}
+          className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : viewMode === "list" ? "space-y-3 flex flex-col" : ""}`}
         >
           {notes
             ?.slice()
@@ -357,6 +384,9 @@ export default function App() {
 
                 <View className="flex-row items-center justify-between mt-3">
                   <Text className="text-gray-400 text-xs ">
+                    {viewMode === "list" && (
+                      <Ionicons name="time" className="text-primary-button " />
+                    )}{" "}
                     {note.date || ""}
                   </Text>
 
@@ -393,9 +423,7 @@ export default function App() {
               onPress={() => router.push("/(tabs)/NewNote")}
               className="py-2 px-4 bg-primary-button mt-4 rounded-xl shadow-xl "
             >
-              <Text className="text-sm font-medium text-default">
-                Create new Note
-              </Text>
+              <Text className="font-medium text-white">Create new Note</Text>
             </TouchableOpacity>
           </View>
         )}

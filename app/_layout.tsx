@@ -107,6 +107,10 @@ export default function RootLayout() {
             name="(screen)/DeveloperInfo"
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="(screen)/ForgotPin"
+            options={{ headerShown: false }}
+          />
 
           <Stack.Screen
             name="(optionals)/BuyMeCoffee"

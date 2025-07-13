@@ -178,7 +178,7 @@ export default function App() {
 
   // handle heart button toggle, favourite
   const handleToggleFavourite = async () => {
-    // setIsFavourite(!isFavourite);
+    setIsFavourite(!isFavourite);
     const favouriteId = currentIdRef.current;
     const favStatus: boolean = isFavourite ? true : false;
     console.log("FavsStatus: ", favStatus);
@@ -421,7 +421,7 @@ export default function App() {
               onPress={() => router.push("/(tabs)/NewNote")}
               className="py-2 px-4 bg-primary-button mt-4 rounded-xl shadow-xl "
             >
-              <Text className="text-sm font-medium text-default">
+              <Text className="font-medium text-white">
                 Create new Note
               </Text>
             </TouchableOpacity>
