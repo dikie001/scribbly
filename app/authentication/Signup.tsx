@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { createUser } from "../utils/auth";
+import { createUser } from "../utils/miniFunctions";
 
 interface FormData {
   name: string;
@@ -80,11 +80,13 @@ const SignupScreen = () => {
           <View className="space-y-4">
             {/* Name Input */}
             <View>
-              <label className="text-slate-400 font-medium">Full Name</label>
+              <label className="text-slate-400 font-medium">Username</label>
               <TextInput
                 value={form.name}
                 onChangeText={(value) => handleInputChange("name", value)}
                 placeholder="Enter username i.e dikie"
+                autoComplete="off"
+                autoFocus
                 placeholderTextColor="rgb(196 181 253 / 0.5)"
                 className={`bg-gray-800  ring-1 outline-0 ${
                   errors.name ? "ring-red-400" : "ring-primary-btnLight"
@@ -107,6 +109,7 @@ const SignupScreen = () => {
                 placeholderTextColor="rgb(196 181 253 / 0.5)"
                 keyboardType="numeric"
                 secureTextEntry
+                autoComplete="off"
                 maxLength={4}
                 className={`bg-gray-800 ring-1 outline-0 text-primary-light ${
                   errors.pin ? "ring-red-400" : "ring-primary-btnLight"
@@ -132,6 +135,7 @@ const SignupScreen = () => {
                 placeholderTextColor="rgb(196 181 253 / 0.5)"
                 keyboardType="numeric"
                 secureTextEntry
+                autoComplete="off"
                 maxLength={4}
                 className={`bg-gray-800 ring-1 outline-0 ${
                   errors.confirmPin ? "ring-red-400" : "ring-primary-btnLight"

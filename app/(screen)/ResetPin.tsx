@@ -79,6 +79,7 @@ export default function ResetPasswordScreen() {
           placeholder="Enter current PIN"
           placeholderTextColor="rgb(196 181 253 / 0.5)"
           keyboardType="numeric"
+          autoComplete="off"
           secureTextEntry
           maxLength={4}
           value={oldPin}

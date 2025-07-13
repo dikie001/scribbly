@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import "../../global.css";
 import { useMenu } from "../context/MenuContext";
-import { fetchName } from "../utils/auth";
+import { fetchName, getMode } from "../utils/miniFunctions";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";
@@ -57,22 +57,40 @@ export default function App() {
   const [viewNote, setViewNote] = useState<any>();
   const { toggleMenu } = useMenu();
 
-  // On focusing the page
-  useFocusEffect(
-    useCallback(() => {
-      loadNotes();
-      return;
-    }, [])
-  );
-
   // On first render of the page
   useEffect(() => {
+    // load the username from storage
     const loadName = async () => {
       const name = await fetchName();
       setUsername(name);
     };
     loadName();
   }, []);
+
+  // On focusing the page
+  useFocusEffect(
+    useCallback(() => {
+      loadNotes();
+      // Notes view mode: list/grid
+      loadViewMode();
+      return;
+    }, [])
+  );
+
+  // Load the mode settings from storage
+  const loadViewMode = async () => {
+    const mode = await getMode();
+    const parsed = mode ? JSON.parse(mode) : [];
+    console.log(parsed.viewMode);
+    if (parsed.viewMode === true) {
+      setViewMode("list");
+    } else if (parsed.viewMode === false) {
+      setViewMode("grid");
+    }
+    console.log(viewMode);
+  };
+
+  // Load notes from storage
   const loadNotes = async () => {
     try {
       const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
@@ -160,7 +178,7 @@ export default function App() {
 
   // handle heart button toggle, favourite
   const handleToggleFavourite = async () => {
-    setIsFavourite(!isFavourite);
+    // setIsFavourite(!isFavourite);
     const favouriteId = currentIdRef.current;
     const favStatus: boolean = isFavourite ? true : false;
     console.log("FavsStatus: ", favStatus);
@@ -174,13 +192,13 @@ export default function App() {
   };
 
   // handle the notes view mode: grid/list
-  const handleViewMode = () => {
-    if (viewMode === "list") {
-      setViewMode("grid");
-    } else {
-      setViewMode("list");
-    }
-  };
+  // const handleViewMode = () => {
+  //   if (viewMode === "list") {
+  //     setViewMode("grid");
+  //   } else {
+  //     setViewMode("list");
+  //   }
+  // };
 
   // Get Notes function for search functionality
   const getNotes = async () => {
@@ -224,13 +242,13 @@ export default function App() {
           </TouchableOpacity>
 
           {/* Notes view Mode: grid/list */}
-          <TouchableOpacity onPress={handleViewMode}>
+          {/* <TouchableOpacity onPress={handleViewMode}>
             <Ionicons
               name={viewMode === "list" ? "list" : "grid"}
               size={20}
               className="text-primary-button"
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Menu button */}
           <TouchableOpacity onPress={toggleMenu}>
@@ -263,7 +281,7 @@ export default function App() {
       )}
       <ScrollView className="p-4">
         <View
-          className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : "space-y-3"}`}
+          className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : viewMode === "list" ? "space-y-3 flex flex-col" : ""}`}
         >
           {notes
             ?.slice()

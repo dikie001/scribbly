@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, TouchableOpacity, Vibration, View } from "react-native";
-import { verifyPin } from "../utils/auth";
-import { router } from "expo-router";
 import Toast from "react-native-toast-message";
+import { verifyPin } from "../utils/miniFunctions";
 
 const LoginScreen = () => {
   const [pin, setPin] = useState("");
@@ -21,7 +21,6 @@ const LoginScreen = () => {
       setPin(pin + value);
     }
     if (pin.length >= 3) {
-   
       // const ok = await verifyPin(pin);
       // console.log(pin)
       // console.log(ok)
@@ -36,16 +35,16 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     if (pin.length < 4) return;
-    const ok = await verifyPin(pin); 
+    const ok = await verifyPin(pin);
     if (ok) {
       console.log("verification complete");
-      setPin("")
+      setPin("");
       Toast.show({
-        type:'success',
-        text1:'successfully logged in!',
-        text2:'Logged in to scribbly...'
-      })
-      router.push("/")
+        type: "success",
+        text1: "successfully logged in!",
+        text2: "Logged in to scribbly...",
+      });
+      router.push("/");
     } else {
       Vibration.vibrate(100);
       console.log("wrong credentials");
@@ -142,7 +141,10 @@ const LoginScreen = () => {
           </TouchableOpacity> */}
 
           {/* Forgot PIN */}
-          <TouchableOpacity onPress={()=>router.push("/(screen)/ForgotPin")} className="items-center bg-white/10 rounded-xl px-6 py-3">
+          <TouchableOpacity
+            onPress={() => router.push("/(screen)/ForgotPin")}
+            className="items-center bg-white/10 rounded-xl px-6 py-3"
+          >
             <Text className="text-white/80 text-sm font-medium">
               Forgot PIN? 🔑
             </Text>

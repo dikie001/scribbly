@@ -1,183 +1,229 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
-import { RadioButton } from "react-native-paper";
 import { useMenu } from "../context/MenuContext";
 
-const SettingsPage = () => {
-  const { toggleMenu } = useMenu();
+type SettingsType = {
+  displayMode: boolean;
+  autoSave: boolean;
+  viewMode: boolean;
+  notifications: boolean;
+  usePin: boolean;
+};
 
-  // Simple settings states
-  const [darkMode, setDarkMode] = useState(true);
-  const [autoSave, setAutoSave] = useState(true);
-  const [notifications, setNotifications] = useState(false);
-  const [usePin, setUsePin] = useState(true);
-  const [checked, setChecked] = useState<boolean>();
+const SETTINGS = "scribbly-settings";
+
+export default function SettingsPage() {
+  // on focusing the screen
+  useFocusEffect(
+    useCallback(() => {
+      loadSettings();
+    }, [])
+  );
+
+  //  Load settings from storage
+  const loadSettings = async () => {
+    try {
+      const settings = await AsyncStorage.getItem(SETTINGS);
+      const parsedSettings = settings ? JSON.parse(settings) : [];
+      setSettings(parsedSettings);
+    } catch (err) {
+      console.log("AsyncStorage: ", err);
+    }
+  };
+
+  const { toggleMenu } = useMenu();
+  const [currentSettings, setCurrentSettings] = useState<SettingsType[]>([]);
+
+  const [settings, setSettings] = useState({
+    displayMode: true,
+    autoSave: true,
+    viewMode: true,
+    notifications: true,
+    usePin: true,
+  });
+
+  // Handle switch toggle
+  const handleSwitchToggle = async (key: string, val: boolean) => {
+    const newSettings = { ...settings, [key]: val };
+    setSettings(newSettings);
+    try {
+      await AsyncStorage.setItem(SETTINGS, JSON.stringify(newSettings));
+    } catch (err) {
+      console.log("AsyncStorage: ", err);
+    }
+  };
 
   return (
     <View className="flex-1 bg-primary-dark">
       {/* Header */}
       <View className="flex-row justify-between p-4 items-center">
         <View className="flex-row items-center">
-          <TouchableOpacity
-            onPress={router.back}
-            className="mr-4"
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              className="text-primary-btnLight"
-            />
+          <TouchableOpacity onPress={router.back} className="mr-4">
+            <Ionicons name="chevron-back" size={24} className="text-primary-btnLight" />
           </TouchableOpacity>
-          <Text className="text-primary-button text-xl font-bold">
-            Settings
-          </Text>
+          <Text className="text-primary-button text-xl font-bold">Settings</Text>
         </View>
-
         <TouchableOpacity onPress={toggleMenu}>
-          <Ionicons name="menu" size={27} color="#fff" />
+          <Ionicons name="menu" size={27} className="text-primary-button" />
         </TouchableOpacity>
       </View>
 
-      {/* Settings List */}
+      {/* Content */}
       <ScrollView className="p-4">
-    
-        {/* Toggles */}
-        <SettingItem
-          title="Dark Mode"
-          subtitle="Use dark theme"
-          icon="moon-outline"
-          value={darkMode}
-          onToggle={() => setDarkMode(!darkMode)}
-        />
-        <SettingItem
-          title="Notes View Style"
-          subtitle={`Currently: ${checked ? "Grid View" : "List View"}`}
-          icon={checked ? "grid" : "list"}
-          value={checked}
-          onToggle={() => setChecked(!checked)}
-        />
+        {/* Toggles with Icons */}
+        <View className="flex-row  items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons name="moon-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Dark Mode</Text>
+            <Text className="text-gray-400 text-sm">Use dark theme</Text>
+          </View>
+          <Switch
+            value={settings.displayMode}
+            onValueChange={(val) => {
+              handleSwitchToggle("displayMode", val);
+            }}
+          />
+        </View>
 
-        <SettingItem
-          title="Auto Save"
-          subtitle="Save notes automatically"
-          icon="save-outline"
-          value={autoSave}
-          onToggle={() => setAutoSave(!autoSave)}
-        />
+        {/* Notes view style/ viewMode */}
+        <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons
+            name={settings.viewMode ? "list" : "grid"}
+            size={20}
+            color="#9ca3af"
+          />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Notes View Style</Text>
+            <Text className="text-gray-400 text-sm">
+              Currently: {settings.viewMode ? "List View" : "Grid View"}
+            </Text>
+          </View>
+          <Switch
+            value={settings.viewMode}
+            onValueChange={(val) => {
+              handleSwitchToggle("viewMode", val);
+            }}
+          />
+        </View>
 
-        <SettingItem
-          title="Notifications"
-          subtitle="Enable notifications"
-          icon="notifications-outline"
-          value={notifications}
-          onToggle={() => setNotifications(!notifications)}
-        />
+        {/* Auto save notes */}
+        <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons name="save-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Auto Save</Text>
+            <Text className="text-gray-400 text-sm">
+              Save notes automatically
+            </Text>
+          </View>
+          <Switch
+            value={settings.autoSave}
+            onValueChange={(val) => handleSwitchToggle("autoSave", val)}
+          />
+        </View>
 
-        <SettingItem
-          title="Use 4-digit PIN"
-          subtitle="Secure app access"
-          icon="lock-closed-outline"
-          value={usePin}
-          onToggle={() => setUsePin(!usePin)}
-        />
+        {/* Enable notifications */}
+        <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons name="notifications-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Notifications</Text>
+            <Text className="text-gray-400 text-sm">Enable notifications</Text>
+          </View>
+          <Switch
+            value={settings.notifications}
+            onValueChange={(val) => handleSwitchToggle("notifications", val)}
+          />
+        </View>
 
-        {/* Navigation buttons */}
-        <NavItem
-          title="Privacy Policy"
-          subtitle="How we handle data"
-          icon="shield-outline"
-          to="/(screen)/PrivacyPolicy"
-        />
-        <NavItem
-          title="Reset Pin"
-          subtitle="Change your app login PIN"
-          icon="lock-closed-outline"
-          to="/(screen)/ResetPin"
-        />
+        {/* Allow use of a 4-digit pin for auth */}
+        <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Use 4-digit PIN</Text>
+            <Text className="text-gray-400 text-sm">Secure app access</Text>
+          </View>
+          <Switch
+            value={settings.usePin}
+            onValueChange={(val) => handleSwitchToggle("usePin", val)}
+          />
+        </View>
 
-        <NavItem
-          title="Contact Support"
-          subtitle="Help & feedback"
-          icon="help-circle-outline"
-          to="/(screen)/ContactSupport"
-        />
+        {/* Navigation Links */}
+        <TouchableOpacity
+          className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
+          onPress={() => router.push("/(screen)/PrivacyPolicy")}
+        >
+          <Ionicons name="shield-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Privacy Policy</Text>
+            <Text className="text-gray-400 text-sm">How we handle data</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+        </TouchableOpacity>
 
-        <NavItem
-          title="Developer Info"
-          subtitle="Developer & tech stack"
-          icon="code-slash-outline"
-          to="/(screen)/DeveloperInfo"
-        />
+        <TouchableOpacity
+          className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
+          onPress={() => router.push("/(screen)/ResetPin")}
+        >
+          <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Reset Pin</Text>
+            <Text className="text-gray-400 text-sm">
+              Change your app login PIN
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+        </TouchableOpacity>
 
-        {/* App version - no navigation */}
-        <InfoItem
-          title="App Version"
-          subtitle="1.0.0"
-          icon="information-circle-outline"
-        />
+        <TouchableOpacity
+          className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
+          onPress={() => router.push("/(screen)/ContactSupport")}
+        >
+          <Ionicons name="help-circle-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Contact Support</Text>
+            <Text className="text-gray-400 text-sm">Help & feedback</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
+          onPress={() => router.push("/(screen)/DeveloperInfo")}
+        >
+          <Ionicons name="code-slash-outline" size={20} color="#9ca3af" />
+          <View className="flex-1 ml-4">
+            <Text className="text-white">Developer Info</Text>
+            <Text className="text-gray-400 text-sm">
+              Developer & tech stack
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#6b7280" />
+        </TouchableOpacity>
+
+        {/* Static Info */}
+        <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
+          <Ionicons
+            name="information-circle-outline"
+            size={20}
+            color="#9ca3af"
+          />
+          <View className="ml-4">
+            <Text className="text-white">App Version</Text>
+            <Text className="text-gray-400 text-sm">1.0.0</Text>
+          </View>
+        </View>
 
         {/* Footer */}
         <View className="items-center mt-8 mb-10">
-          <Text className="text-gray-500 text-sm">
+          <Text className="text-primary-btnLight text-sm">
             Scribbly © {new Date().getFullYear()} — All Rights Reserved
           </Text>
         </View>
       </ScrollView>
     </View>
   );
-};
-
-// 🔘 Basic toggle switch
-const SettingItem = ({ title, subtitle, icon, value, onToggle }: any) => (
-  <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
-    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
-      <Ionicons name={icon} size={20} color="#9ca3af" />
-    </View>
-    <View className="flex-1 ml-4">
-      <Text className="text-white font-medium">{title}</Text>
-      <Text className="text-gray-400 text-sm">{subtitle}</Text>
-    </View>
-    <Switch
-      value={value}
-      onValueChange={onToggle}
-      trackColor={{ false: "#374151", true: "#4ade80" }}
-      thumbColor={value ? "#6d28d9" : "#9ca3af"}
-    />
-  </View>
-);
-
-// 👉 Nav item (chevron)
-const NavItem = ({ title, subtitle, icon, to }: any) => (
-  <TouchableOpacity
-    onPress={() => router.push(to)}
-    className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4"
-    activeOpacity={0.7}
-  >
-    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
-      <Ionicons name={icon} size={20} color="#9ca3af" />
-    </View>
-    <View className="flex-1 ml-4">
-      <Text className="text-white font-medium">{title}</Text>
-      <Text className="text-gray-400 text-sm">{subtitle}</Text>
-    </View>
-    <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-  </TouchableOpacity>
-);
-
-// ℹ️ Static info (no nav)
-const InfoItem = ({ title, subtitle, icon }: any) => (
-  <View className="flex-row items-center p-4 bg-gray-800 rounded-xl mb-4">
-    <View className="w-10 h-10 bg-gray-700 rounded-full items-center justify-center">
-      <Ionicons name={icon} size={20} color="#9ca3af" />
-    </View>
-    <View className="flex-1 ml-4">
-      <Text className="text-white font-medium">{title}</Text>
-      <Text className="text-gray-400 text-sm">{subtitle}</Text>
-    </View>
-  </View>
-);
-
-export default SettingsPage;
+}

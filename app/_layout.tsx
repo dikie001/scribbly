@@ -1,32 +1,62 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, Stack } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Toast from "react-native-toast-message";
 import "../global.css";
 import { MenuProvider } from "./context/MenuContext";
 import MenuModal from "./modals/MenuModal";
-import Toast from "react-native-toast-message"
+import { getSettings } from "./utils/miniFunctions";
 
 const howareyou = "kephkhale";
-
 const USER_DETAILS = "scribbly-user-details";
 
+type SettingsType = {
+  displayMode: boolean;
+  autoSave: boolean;
+  viewMode: boolean;
+  notifications: boolean;
+  usePin: boolean;
+};
 
 export default function RootLayout() {
+  const [settings, setSettings] = useState<any>([]);
+  useEffect(() => {
+    const allSettings = async () => {
+      const currentSettings = await getSettings();
+      const parsedSettings = currentSettings ? JSON.parse(currentSettings) : [];
+      setSettings(parsedSettings);
+    };
+
+    allSettings();
+  }, []);
+
   const CheckAuthenticationAndstatus = async () => {
-    try {
-      const userDetails = await AsyncStorage.getItem(USER_DETAILS);
-      if (userDetails) {
-        // router.push("/authentication/Login");
-      } else {
-        router.push("/authentication/Signup");
+    console.log("pin:", settings.usePin);
+    if (settings.usePin === false){
+      console.log('user specified not to use pin...')
+      router.push("/")
+    }
+    else if (settings.usePin === true || !settings.usePin) {
+      console.log('user allowed use of pin...')
+      try {
+        const userDetails = await AsyncStorage.getItem(USER_DETAILS);
+        if (userDetails) {
+          router.push("/authentication/Login");
+        } else {
+          router.push("/authentication/Signup");
+        }
+      } catch (err) {
+        console.log("AsyncStorage: ", err);
       }
-    } catch (err) {
-      console.log("AsyncStorage: ", err);
     }
   };
   useEffect(() => {
     CheckAuthenticationAndstatus();
   }, []);
+
+  useEffect(()=>{
+    CheckAuthenticationAndstatus()
+  },[settings])
 
   return (
     <MenuProvider>
