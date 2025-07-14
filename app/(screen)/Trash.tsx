@@ -51,8 +51,7 @@ export default function App() {
     try {
       const loadedData = await AsyncStorage.getItem(TRASH_KEY);
       const parsedData: NoteType[] = loadedData ? JSON.parse(loadedData) : [];
-      const favouriteNotes = parsedData.filter((item) => item.favourite);
-      setNotes(favouriteNotes);
+      setNotes(parsedData);
     } catch (err) {
       console.log(err);
     }
@@ -112,7 +111,7 @@ export default function App() {
             />
           </TouchableOpacity>
           <Text className="text-2xl font-bold text-primary-button">
-            Scribbly
+            Trash
           </Text>
         </View>
         <View>

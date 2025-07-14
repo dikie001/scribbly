@@ -37,6 +37,7 @@ export default function App() {
   const [isFavourite, setIsFavourite] = useState<boolean>();
   const [currentId, setCurrentId] = useState<string>();
   const currentIdRef = useRef<string | null>(null);
+  const favouriteRef = useRef<boolean | null>(null)
   const [openSearchBar, setOpenSearchBar] = useState<boolean>(false);
   const currentLikeRef = useRef<boolean | null>(null);
   const [viewMode, setViewMode] = useState<string>("list");
@@ -176,9 +177,12 @@ export default function App() {
     loadNotes();
   };
 
+
   // handle heart button toggle, favourite
   const handleToggleFavourite = async () => {
     setIsFavourite(!isFavourite);
+    // favouriteRef.current = !isFavourite
+    // const fav = favouriteRef.current
     const favouriteId = currentIdRef.current;
     const favStatus: boolean = isFavourite ? true : false;
     console.log("FavsStatus: ", favStatus);
