@@ -17,5 +17,8 @@
   },
   "submit": {
     "production": {}
+  },
+  "env": {
+    "EXPO_NO_FROZEN_LOCKFILE": "true"
   }
 }
