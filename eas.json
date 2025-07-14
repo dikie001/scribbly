@@ -6,19 +6,25 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_NO_FROZEN_LOCKFILE": "true"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_NO_FROZEN_LOCKFILE": "true"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_NO_FROZEN_LOCKFILE": "true"
+      }
     }
   },
   "submit": {
     "production": {}
-  },
-  "env": {
-    "EXPO_NO_FROZEN_LOCKFILE": "true"
   }
 }
