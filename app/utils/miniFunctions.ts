@@ -8,7 +8,7 @@ export const verifyPin = async (inputPin: string) => {
   const savedDetails: any = await AsyncStorage.getItem(USER_DETAILS);
   const parsed = JSON.parse(savedDetails);
   console.log(parsed);
-  return inputPin === parsed.pin;
+  return inputPin === parsed.pin || null;
 };
 
 // fetch name for display in home

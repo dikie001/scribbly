@@ -3,24 +3,52 @@ import { Tabs } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";
 
-const TabIcon = ({ name, icon, focused }: any) => {
+interface TabIconProps {
+  name: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  focused: boolean;
+}
+
+const TabIcon: React.FC<TabIconProps> = ({ name, icon, focused }) => {
   return (
-    <View className="overflow-hidden outline-none items-center rounded-full  ">
+    <View className="items-center justify-center">
       <View
-        className={`${focused ? "bg-gray-700 " : "bg-transparent"} h-14 outline-none  overflow-hidden flex justify-center items-center   px-4 flex-row min-w-[112px] w-full`}
+        className={`
+          ${
+            focused
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 h-14 shadow-lg shadow-blue-500/25"
+              : "bg-gray-800/50 hover:bg-gray-700/50"
+          } 
+          h-14 px-4 flex-row items-center justify-center rounded-2xl
+          transition-all duration-200 ease-in-out
+          ${focused ? "min-w-[120px]" : "min-w-[48px]"}
+        `}
       >
-        <Ionicons name={icon} size={focused ? 26 : 25} className={`${focused ? "text-primary-button": 'text-gray-400'}`} />
+        <Ionicons
+          name={icon}
+          size={focused ? 22 : 20}
+          color={focused ? "#ffffff" : "#9ca3af"}
+        />
         {focused && (
-          <Text className="text-white font-bold ml-2 text-sm">{name}</Text>
+          <Text className="text-white font-semibold ml-2 text-sm tracking-wide">
+            {name}
+          </Text>
         )}
       </View>
     </View>
   );
 };
-const tabs = [
-  { name: "index", title: "Notes", icon: "document" },
-  { name: "NewNote", title: "New", icon: "add" },
-  { name: "Favourites", title: "Fav...", icon: "star" },
+
+interface TabConfig {
+  name: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+const tabs: TabConfig[] = [
+  { name: "index", title: "Notes", icon: "document-text" },
+  { name: "NewNote", title: "Create", icon: "add-circle" },
+  { name: "Favourites", title: "Favorites", icon: "heart" },
 ];
 
 export default function TabLayout() {
@@ -30,25 +58,28 @@ export default function TabLayout() {
         tabBarShowLabel: false,
         headerShown: false,
         tabBarItemStyle: {
-          height: 60,
-          paddingVertical: 8,
+          height: 68,
+          paddingVertical: 10,
           backgroundColor: "transparent",
+          borderRadius: 20,
+          
         },
         tabBarStyle: {
-          backgroundColor: "#1f2937",
-          height: 55,
-          width: 336,
-     
-          borderRadius: 25,
-          marginBottom: 20,
+          backgroundColor: "#111827",
+          height: 60,
+          width: 350,
+          borderRadius: 14,
+          marginBottom: 24,
           marginHorizontal: "auto",
           position: "absolute",
           borderTopWidth: 0,
-          shadowColor: "#0000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.5,
-          shadowRadius: 8,
-          elevation: 20,
+          shadowColor: "#6d28d9",
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.4,
+          shadowRadius: 16,
+          elevation: 44,
+          borderWidth: 0,
+          borderColor: "#6d28d9",
         },
       }}
     >

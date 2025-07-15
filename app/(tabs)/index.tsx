@@ -15,10 +15,11 @@ import {
 } from "react-native";
 import "../../global.css";
 import { useMenu } from "../context/MenuContext";
-import { fetchName, getMode } from "../utils/miniFunctions";
+import { fetchName, getMode, getSettings } from "../utils/miniFunctions";
 
 const STORAGE_KEY = "scribbly-notes";
 const TRASH_KEY = "scribbly-trash";
+const SETTINGS = "scribbly-settings";
 
 type NoteType = {
   id: string;
@@ -37,14 +38,24 @@ export default function App() {
   const [isFavourite, setIsFavourite] = useState<boolean>();
   const [currentId, setCurrentId] = useState<string>();
   const currentIdRef = useRef<string | null>(null);
-  const favouriteRef = useRef<boolean | null>(null)
+  const favouriteRef = useRef<boolean | null>(null);
+  const currentDisplayModeRef = useRef<boolean | null>(null);
   const [openSearchBar, setOpenSearchBar] = useState<boolean>(false);
   const currentLikeRef = useRef<boolean | null>(null);
   const [viewMode, setViewMode] = useState<string>("list");
   const [liked, setLiked] = useState();
+  const [theme, setTheme] = useState<boolean>();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [indicate, setIndicate] = useState<boolean | null>(null);
+
+  const [settings, setSettings] = useState({
+    displayMode: true,
+    autoSave: true,
+    viewMode: true,
+    notifications: true,
+    usePin: true,
+  });
   const [searchedNotes, setSearchedNotes] = useState<number | null>(null);
   const [informationModalVisible, setInformationModalVisible] =
     useState<boolean>(false);
@@ -68,12 +79,40 @@ export default function App() {
     loadName();
   }, []);
 
+  //theme changes: light or dark
+  useEffect(() => {
+    const saveTheme = async () => {
+      const updatedSettings = { ...settings, displayMode: theme };
+      // await AsyncStorage.setItem(SETTINGS, JSON.stringify(updatedSettings));
+    };
+
+    const loadTheme=async()=>{
+      const fetchedSettings:any =await AsyncStorage.getItem(SETTINGS);
+      const parsed = fetchedSettings? JSON.parse(fetchedSettings):[]
+      
+    }
+    saveTheme();
+    loadTheme()
+  }, [theme]);
+
+  // Load settings from storage
+  const loadSettings = async () => {
+    const currentSettings = await getSettings();
+    const parsedSettings = currentSettings ? JSON.parse(currentSettings) : [];
+    //  currentDisplayModeRef.current = parsedSettings.displayMode
+    setSettings(parsedSettings);
+    setTheme(parsedSettings.displayMode);
+  };
+
   // On focusing the page
   useFocusEffect(
     useCallback(() => {
+      // Load notes array from storagee
       loadNotes();
-      // Notes view mode: list/grid
+      // load notes view mode: list/grid.... this is not different from loadSettings()
       loadViewMode();
+      // get settings from storage
+      loadSettings();
       return;
     }, [])
   );
@@ -88,7 +127,6 @@ export default function App() {
     } else if (parsed.viewMode === false) {
       setViewMode("grid");
     }
-    console.log(viewMode);
   };
 
   // Load notes from storage
@@ -177,6 +215,8 @@ export default function App() {
     loadNotes();
   };
 
+  //handle theme change : light/dark >>>>>>>>>>>> it is late, the state is boring
+  const handleThemeChange = async () => {};
 
   // handle heart button toggle, favourite
   const handleToggleFavourite = async () => {
@@ -245,14 +285,20 @@ export default function App() {
             <Ionicons name="search" size={20} className="text-primary-button" />
           </TouchableOpacity>
 
-          {/* Notes view Mode: grid/list */}
-          {/* <TouchableOpacity onPress={handleViewMode}>
+          {/* app theme: dark /light*/}
+          <TouchableOpacity
+            onPress={() => {
+              handleThemeChange();
+              setTheme(!theme);
+              console.log("Theme-", theme);
+            }}
+          >
             <Ionicons
-              name={viewMode === "list" ? "list" : "grid"}
+              name={theme === true ? "moon-sharp" : "sunny-sharp"}
               size={20}
               className="text-primary-button"
             />
-          </TouchableOpacity> */}
+          </TouchableOpacity>
 
           {/* Menu button */}
           <TouchableOpacity onPress={toggleMenu}>
@@ -385,9 +431,12 @@ export default function App() {
                 </Text>
 
                 <View className="flex-row items-center justify-between mt-3">
-                  <Text className="text-gray-400 text-xs ">
+                  <Text className="text-gray-400 text-xs flex flex-row gap-1 items-center justify-center">
                     {viewMode === "list" && (
-                      <Ionicons name="time" className="text-primary-button " />
+                      <Ionicons
+                        name="time-outline"
+                        className="text-gray-300 "
+                      />
                     )}{" "}
                     {note.date || ""}
                   </Text>
@@ -425,9 +474,7 @@ export default function App() {
               onPress={() => router.push("/(tabs)/NewNote")}
               className="py-2 px-4 bg-primary-button mt-4 rounded-xl shadow-xl "
             >
-              <Text className="font-medium text-white">
-                Create new Note
-              </Text>
+              <Text className="font-medium text-white">Create new Note</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -485,11 +532,11 @@ export default function App() {
           onRequestClose={() => setModalVisible(false)}
         >
           <View className="flex-1 bg-black/60 justify-center items-center px-4">
-            <View className="bg-primary-dark w-full rounded-2xl p-6 space-y-4 shadow-2xl border border-gray-700">
+            <View className="bg-primary-dark w-full rounded-2xl p-6  shadow-2xl border border-gray-700">
               {/* Title Input */}
-              <Text className="text-white text-base font-medium">
+              <label className="text-gray-400 text-base font-medium">
                 Edit Title
-              </Text>
+              </label>
               <TextInput
                 value={editNotes?.title}
                 onChangeText={(text) =>
@@ -497,13 +544,13 @@ export default function App() {
                 }
                 placeholder="Note title"
                 placeholderTextColor="#9CA3AF"
-                className="bg-gray-800 text-white p-3 rounded-xl border border-gray-600 outline-0 focus:ring ring-primary-btnLight"
+                className="bg-gray-800 text-white p-3 mb-6 rounded-xl  outline-0 focus:ring-2 ring-1"
               />
 
               {/* Content Input */}
-              <Text className="text-white text-base font-medium">
+              <label className="text-gray-400 text-base font-medium">
                 Edit Content
-              </Text>
+              </label>
               <TextInput
                 value={editNotes?.content}
                 onChangeText={(text) =>
@@ -511,7 +558,7 @@ export default function App() {
                 }
                 placeholder="Note content"
                 placeholderTextColor="#9CA3AF"
-                className="bg-gray-800 text-white p-3 outline-0 focus:ring ring-primary-btnLight rounded-xl border border-gray-600 h-32 text-start"
+                className="bg-gray-800 text-white p-3 outline-0 focus:ring-2 ring-1 rounded-xl h-32 text-start"
                 multiline
               />
 
@@ -519,7 +566,7 @@ export default function App() {
               <View className="flex-row justify-end space-x-4 mt-4">
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
-                  className="px-4 py-2 bg-gray-600 rounded-xl"
+                  className="px-4 py-2 bg-gray-600 shadow-xl elevation-lg rounded-xl"
                 >
                   <Text className="text-white font-medium">Cancel</Text>
                 </TouchableOpacity>
@@ -532,7 +579,9 @@ export default function App() {
                   }}
                   className="px-4 py-2 bg-primary-button rounded-xl"
                 >
-                  <Text className="text-default font-medium">Save</Text>
+                  <Text className="text-primary-light shadow-xl elevation-lg font-medium">
+                    Save
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -547,26 +596,30 @@ export default function App() {
           onRequestClose={() => setInformationModalVisible(false)}
         >
           <View className="flex-1 bg-black/60 justify-center items-center px-4">
-            <View className="bg-primary-dark w-full rounded-2xl p-6 shadow-2xl border border-gray-700 space-y-4">
+            <View className="bg-primary-dark w-full rounded-2xl p-6 shadow-2xl border border-gray-700 space-y-2">
               {/* Title */}
-              <Text className="text-white text-xl font-bold">
+              <Text className="text-white text-center text-xl pb-2 font-bold">
                 {viewNote?.title}
               </Text>
 
-              {/* Date */}
-              <Text className="text-gray-500 text-sm">{viewNote?.date}</Text>
-
               {/* Content */}
               <Text className="text-gray-300 text-base leading-relaxed">
-                {viewNote?.content}
+                Content: {viewNote?.content}
+              </Text>
+              {/* Date */}
+              <Text className="text-gray-500 text-sm">
+                Date created: {viewNote?.date}
+              </Text>
+              <Text className="text-gray-500 text-sm">
+                Created by: {username}
               </Text>
 
               {/* Close Button */}
               <TouchableOpacity
                 onPress={() => setInformationModalVisible(false)}
-                className="mt-6 bg-primary-button py-2 px-4 rounded-xl self-end"
+                className="mt-6 bg-primary-button py-2 px-4 rounded-xl shadow-xl elevation-xl self-end"
               >
-                <Text className="text-default font-medium">Close</Text>
+                <Text className="text-primary-light  font-medium">Close</Text>
               </TouchableOpacity>
             </View>
           </View>
