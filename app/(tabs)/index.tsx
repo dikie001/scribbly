@@ -27,6 +27,8 @@ type NoteType = {
   content: string;
   date: string;
   favourite: boolean;
+  tags: [];
+  category: string;
 };
 
 export default function App() {
@@ -47,7 +49,8 @@ export default function App() {
   const [theme, setTheme] = useState<boolean>();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [username, setUsername] = useState<string>("");
-  const [indicate, setIndicate] = useState<boolean | null>(null);
+  const [filterModal, setFilterModal] = useState<boolean>(false);
+  const [currentCategories, setCurrentCategories] = useState<any>([]);
 
   const [settings, setSettings] = useState({
     displayMode: true,
@@ -86,13 +89,12 @@ export default function App() {
       // await AsyncStorage.setItem(SETTINGS, JSON.stringify(updatedSettings));
     };
 
-    const loadTheme=async()=>{
-      const fetchedSettings:any =await AsyncStorage.getItem(SETTINGS);
-      const parsed = fetchedSettings? JSON.parse(fetchedSettings):[]
-      
-    }
+    const loadTheme = async () => {
+      const fetchedSettings: any = await AsyncStorage.getItem(SETTINGS);
+      const parsed = fetchedSettings ? JSON.parse(fetchedSettings) : [];
+    };
     saveTheme();
-    loadTheme()
+    loadTheme();
   }, [theme]);
 
   // Load settings from storage
@@ -132,12 +134,14 @@ export default function App() {
   // Load notes from storage
   const loadNotes = async () => {
     try {
-      const loadedData = await AsyncStorage.getItem(STORAGE_KEY);
+      const loadedData = await AsyncStorage.getItem(STORAGE_KEY); //get notes from storage
       const parsedData: NoteType[] = loadedData ? JSON.parse(loadedData) : [];
       setNotes(parsedData);
+      const categories =   [...new Set(notes?.map((item) => item.category))];
+      setCurrentCategories(categories);
+      console.log("categories: ", categories);
     } catch (err) {
       console.log(err);
-    } finally {
     }
   };
 
@@ -183,7 +187,6 @@ export default function App() {
     }
     const trashContent = await AsyncStorage.getItem(TRASH_KEY);
     const parsedTrashContent = trashContent ? JSON.parse(trashContent) : [];
-    console.log(trash);
     const newTrashContent = [...parsedTrashContent, deleted];
     setTrash(newTrashContent);
     AsyncStorage.setItem(TRASH_KEY, JSON.stringify(newTrashContent));
@@ -199,7 +202,6 @@ export default function App() {
 
   // Save the edited notes
   const handleSaveEdit = async () => {
-    console.log(editNotes);
     const editedNotes: any = notes?.map((note) =>
       note.id === currentIdRef.current
         ? { ...note, title: editNotes.title, content: editNotes.content }
@@ -211,7 +213,6 @@ export default function App() {
       console.error(err);
     }
     setModalVisible(false);
-    console.log("editedNotes", editedNotes);
     loadNotes();
   };
 
@@ -225,7 +226,6 @@ export default function App() {
     // const fav = favouriteRef.current
     const favouriteId = currentIdRef.current;
     const favStatus: boolean = isFavourite ? true : false;
-    console.log("FavsStatus: ", favStatus);
     const updatedNote = notes?.map((note) =>
       note.id === favouriteId ? { ...note, favourite: favStatus } : note
     );
@@ -234,15 +234,6 @@ export default function App() {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNote));
     loadNotes();
   };
-
-  // handle the notes view mode: grid/list
-  // const handleViewMode = () => {
-  //   if (viewMode === "list") {
-  //     setViewMode("grid");
-  //   } else {
-  //     setViewMode("list");
-  //   }
-  // };
 
   // Get Notes function for search functionality
   const getNotes = async () => {
@@ -266,6 +257,12 @@ export default function App() {
       setSearchedNotes(0);
       console.log("no notes by that name");
     }
+  };
+
+  // handle category selection
+  const handleCategoryToggle = (item: any) => {
+    const filteredNotes: any = notes?.find((n) => item === n?.category);
+    setNotes([filteredNotes]);
     console.log(filteredNotes);
   };
   return (
@@ -275,10 +272,25 @@ export default function App() {
           Welcome, {username}
         </Text>
         <View className="flex flex-row justify-center items-center gap-5">
+          {/* Filter button */}
+          <TouchableOpacity
+            onPress={() => {
+              setFilterModal(!filterModal);
+              if (openSearchBar) {
+                setOpenSearchBar(false);
+              }
+            }}
+          >
+            <Ionicons name="filter" size={22} className="text-primary-button" />
+          </TouchableOpacity>
+
           {/* Search button */}
           <TouchableOpacity
             onPress={() => {
               setOpenSearchBar(!openSearchBar);
+              if (filterModal) {
+                setFilterModal(false);
+              }
               loadNotes();
             }}
           >
@@ -307,6 +319,7 @@ export default function App() {
         </View>
       </View>
 
+      {/* Search bar */}
       {openSearchBar && (
         <View className="bg-primary-dark px-[15px]">
           <TextInput
@@ -329,6 +342,30 @@ export default function App() {
           />
         </View>
       )}
+
+      {/* Filter notes */}
+      {filterModal && (
+        <View className="px-4 pb-4">
+          <Text className="text-lg text-primary-btnLight font-medium">
+            Filter using categories
+          </Text>
+          <View className="flex flex-wrap flex-row gap-2  mt-2">
+            {currentCategories.map((item: any, i: number) => (
+              <TouchableOpacity
+                onPress={() => handleCategoryToggle(item)}
+                key={i}
+                className="text-white py-1 px-6 rounded-full shadow-xl bg-blue-700"
+              >
+                {item}
+              </TouchableOpacity>
+          
+            ))}
+            {currentCategories && <TouchableOpacity className="text-white font-medium  py-1 px-6 bg-red-600/30 rounded-full shadow-xl ">cancel</TouchableOpacity>}
+          </View>
+        </View>
+      )}
+
+      {/* Map all the nootes */}
       <ScrollView className="p-4">
         <View
           className={` pb-20 ${viewMode === "grid" ? "grid grid-cols-2 gap-2" : viewMode === "list" ? "space-y-3 flex flex-col" : ""}`}
@@ -339,12 +376,12 @@ export default function App() {
             .map((note, index) => (
               <View
                 key={index}
-                className="bg-gray-800  rounded-2xl  overflow-visible p-4  shadow-lg"
+                className={`${viewMode === "grid" && "pb-6 "}bg-gray-800  rounded-2xl  overflow-visible px-4  pb-4 pt-2  shadow-lg`}
               >
                 {/* Additional stuff when ellipsis isclicked */}
                 {extraMenu && currentIndex == index && (
                   <View
-                    className={`${viewMode === "grid" ? "right-2 top-10 space-x-0 " : "right-14 px-3 space-x-3 top-1 "} absolute mt-2 z-50 flex-row items-center bg-gray-700 rounded-2xl  py-2 shadow-2xl border border-gray-600 `}
+                    className={`${viewMode === "grid" ? "right-2 top-10 space-x-0  " : "right-14 px-3 space-x-3 top-1 "} absolute mt-2 z-50 flex-row items-center bg-gray-700 rounded-2xl  py-2 shadow-2xl border border-gray-600 `}
                   >
                     {/* edit */}
                     <TouchableOpacity
@@ -407,12 +444,15 @@ export default function App() {
                 )}
 
                 {/* Notes card */}
+                <Text className="text-violet-400 text-xs">
+                  {note?.category}
+                </Text>
                 <View className="flex-row items-start justify-between mb-2">
                   <Text
                     className="text-white font-semibold text-lg flex-1"
                     numberOfLines={1}
                   >
-                    {note.title}
+                    {note?.title}
                   </Text>
                   <TouchableOpacity onPress={() => toggleExtraMenu(index)}>
                     <Ionicons
@@ -427,10 +467,30 @@ export default function App() {
                   className="text-gray-300 text-sm leading-5"
                   numberOfLines={3}
                 >
-                  {note.content}
+                  {note?.content}
                 </Text>
+                <View
+                  className={`${viewMode === "grid" ? "flex-wrap flex-row " : viewMode === "list" ? "flex-row " : ""} flex gap-2  mt-2`}
+                >
+                  {" "}
+                  {Array.isArray(note?.tags) &&
+                    note.tags &&
+                    note.tags.map((tag, i) => (
+                      <View
+                        key={i}
+                        className="bg-violet-600/20 py-1 px-2 shadow-xl elevation-sm rounded-full"
+                      >
+                        <Text
+                          numberOfLines={1}
+                          className="text-white/90 text-xs"
+                        >
+                          #{tag}
+                        </Text>
+                      </View>
+                    ))}
+                </View>
 
-                <View className="flex-row items-center justify-between mt-3">
+                <View className="flex-row items-center justify-between mt-1">
                   <Text className="text-gray-400 text-xs flex flex-row gap-1 items-center justify-center">
                     {viewMode === "list" && (
                       <Ionicons
@@ -438,11 +498,13 @@ export default function App() {
                         className="text-gray-300 "
                       />
                     )}{" "}
-                    {note.date || ""}
+                    {note?.date}
                   </Text>
 
                   {/* Like button, favourite */}
-                  <View className="flex-row space-x-3">
+                  <View
+                    className={`${viewMode === "grid" && "hidden"} flex-row space-x-3`}
+                  >
                     <TouchableOpacity
                       className="outline-0"
                       onPress={() => {
@@ -452,13 +514,27 @@ export default function App() {
                       }}
                     >
                       <Ionicons
-                        name={note.favourite ? "heart" : "heart-outline"}
+                        name={note?.favourite ? "heart" : "heart-outline"}
                         size={20}
-                        color={note.favourite ? "#A78BFA" : "#9CA3AF"}
+                        color={note?.favourite ? "#A78BFA" : "#9CA3AF"}
                       />
                     </TouchableOpacity>
                   </View>
                 </View>
+                <TouchableOpacity
+                  className="outline-0 absolute bottom-1 right-2"
+                  onPress={() => {
+                    const id = note.id;
+                    currentIdRef.current = id;
+                    handleToggleFavourite();
+                  }}
+                >
+                  <Ionicons
+                    name={note?.favourite ? "heart" : "heart-outline"}
+                    size={20}
+                    color={note?.favourite ? "#A78BFA" : "#9CA3AF"}
+                  />
+                </TouchableOpacity>
               </View>
             ))}
         </View>
@@ -500,29 +576,6 @@ export default function App() {
             </TouchableOpacity>
           </View>
         )}
-        {/* 
-        {indicate ? (
-          <View className="items-center justify-center mt-20">
-            <ActivityIndicator size={"large"} />
-          </View>
-        ) : !notes || (notes.length === 0 && !indicate) ? (
-          <View className="items-center justify-center mt-20">
-            <Ionicons name="document-outline" size={64} color="#4B5563" />
-            <Text className="text-gray-500 mt-4 text-center">
-              No notes yet{"\n"}click button below to create your first note
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/(tabs)/NewNote")}
-              className="py-2 px-4 bg-primary-button mt-4 rounded-xl shadow-xl "
-            >
-              <Text className="text-sm font-medium text-default">
-                Create new Note
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          ""
-        )} */}
 
         {/* Edit Notes Modal */}
         <Modal
@@ -603,7 +656,10 @@ export default function App() {
               </Text>
 
               {/* Content */}
-              <Text className="text-gray-300 text-base leading-relaxed">
+              <Text
+                numberOfLines={30}
+                className="text-gray-300 text-base leading-relaxed"
+              >
                 Content: {viewNote?.content}
               </Text>
               {/* Date */}

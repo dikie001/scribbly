@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "app2",
-    "slug": "app2",
+    "slug": "scribbly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -42,7 +42,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b9797d94-36a7-441a-95eb-a4e7ec305f32"
+        "projectId": "0366a88c-8f3b-4edf-9386-ef4e2588a4e2"
       }
     },
     "owner": "dikie001"

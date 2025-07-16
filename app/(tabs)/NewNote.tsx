@@ -5,14 +5,13 @@ import advanceFormat from "dayjs/plugin/advancedFormat";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   SafeAreaView,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ScrollView,
-  Alert,
-  Keyboard,
 } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import { useMenu } from "../context/MenuContext";
@@ -29,7 +28,7 @@ type NoteType = {
   date: string;
   favourite: boolean | null;
   category: string;
-  tags: string[];
+  tags: any;
 };
 
 const categories = [
@@ -58,9 +57,9 @@ const NewNote = () => {
     title: "",
     date: "",
     content: "",
-    favourite: null,
+    favourite: false,
     category: "Personal",
-    tags: [],
+    tags: [''],
   });
   const [notes, setNotes] = useState<NoteType[]>([]);
 
@@ -114,7 +113,7 @@ const NewNote = () => {
             content: "",
             date: "",
             id: uuidv4(),
-            favourite: null,
+            favourite: false,
             category: "Personal",
             tags: [],
           });
@@ -160,7 +159,7 @@ const NewNote = () => {
               content: "",
               date: "",
               id: uuidv4(),
-              favourite: null,
+              favourite: false,
               category: "Personal",
               tags: [],
             });
